@@ -13,17 +13,24 @@ def render(screen: Surface, coordinate_system: CoordinateSystem, element_buffer:
 
 
 def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem):
-    for x in range(-10, 11):
-        vertical_lines = np.array([[x, -10], [x, 10]])
-        transformed_vertical_lines = coordinate_system(vertical_lines)
+    extreme_points = np.array([
+        [0, 0],
+        [screen.get_width(), screen.get_height()]
+    ])
+    extreme_points = np.trunc(coordinate_system.transform_inverse(extreme_points)).astype(int)
+    for x in range(extreme_points[0, 0], extreme_points[1, 0]+1):
+        vertical_lines = np.array([[x, 0], [x, 0]])
+        transformed_vertical_lines = coordinate_system.transform(vertical_lines)
+        transformed_vertical_lines[:, 1] = [0, screen.get_height()]
         color = Color(30, 30, 30)
         if x == 0:
             color = Color(50, 50, 50)
         pg.draw.line(screen, color, transformed_vertical_lines[0], transformed_vertical_lines[1])
 
-    for y in range(-10, 11):
-        horizontal_lines = np.array([[-10, y], [10, y]])
-        transformed_horizontal_lines = coordinate_system(horizontal_lines)
+    for y in range(extreme_points[1, 1], extreme_points[0, 1]+1):
+        horizontal_lines = np.array([[extreme_points[0, 0], y], [extreme_points[1, 0], y]])
+        transformed_horizontal_lines = coordinate_system.transform(horizontal_lines)
+        transformed_horizontal_lines[:, 0] = [0, screen.get_width()]
         color = Color(30, 30, 30)
         if y == 0:
             color = Color(50, 50, 50)
@@ -31,7 +38,7 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem)
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
-    zero_point = coordinate_system(np.array([0, 0]))
+    zero_point = coordinate_system.transform(np.array([0, 0]))
     for vector in element_buffer.vectors:
-        transformed_vec = coordinate_system(vector)
+        transformed_vec = coordinate_system.transform(vector)
         pg.draw.line(screen, "red", zero_point, transformed_vec)

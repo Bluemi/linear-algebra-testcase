@@ -34,22 +34,30 @@ class CoordinateSystem:
         translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
         self.coord = translation_mat @ self.coord
 
-    def __call__(self, mat: np.ndarray):
+    def transform(self, mat: np.ndarray):
         """
         Transform the given matrix with the internal coordinates.
 
         :param mat: A list of column vectors with shape [N, 2] or [2,].
         :return: A list of column vectors with shape [N, 2] or [2,].
         """
-        expanded = False
-        if len(mat.shape) == 1:
-            expanded = True
-            mat = np.expand_dims(mat, axis=0)
-        result = np.concatenate([mat, np.ones((mat.shape[0], 1))], axis=1) @ self.coord
-        if expanded:
-            return result[0, :-1]
-        else:
-            return result[:, :-1]
+        return transform(self.coord, mat)
+
+    def transform_inverse(self, mat: np.ndarray):
+        inv = np.linalg.pinv(self.coord)
+        return transform(inv, mat)
+
+
+def transform(transform_matrix, mat):
+    expanded = False
+    if len(mat.shape) == 1:
+        expanded = True
+        mat = np.expand_dims(mat, axis=0)
+    result = np.concatenate([mat, np.ones((mat.shape[0], 1))], axis=1) @ transform_matrix
+    if expanded:
+        return result[0, :-1]
+    else:
+        return result[:, :-1]
 
 
 def test_single_dimension():
@@ -57,8 +65,8 @@ def test_single_dimension():
 
     line_coords1 = np.array([100, -100])
     line_coords2 = np.array([-100, 100])
-    line_coords1 = coordinate_system(line_coords1.T)
-    line_coords2 = coordinate_system(line_coords2.T)
+    line_coords1 = coordinate_system.transform(line_coords1.T)
+    line_coords2 = coordinate_system.transform(line_coords2.T)
     assert tuple(line_coords1.shape) == (2,), line_coords1.shape
     assert tuple(line_coords2.shape) == (2,), line_coords2.shape
 
@@ -67,5 +75,5 @@ def test_multi_dimension():
     coordinate_system = CoordinateSystem()
 
     line_coords = np.array([[-100, -100], [100, 100], [200, 200]])
-    line_coords = coordinate_system(line_coords)
+    line_coords = coordinate_system.transform(line_coords)
     assert tuple(line_coords.shape) == (3, 2)

@@ -26,6 +26,7 @@ class Controller:
         elif event.type == pg.MOUSEMOTION:
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
+                self.update_needed = True
         else:
             # print(event)
             pass

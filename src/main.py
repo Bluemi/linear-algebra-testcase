@@ -25,6 +25,7 @@ def main():
         if controller.update_needed:
             render(screen, coordinate_system, element_buffer)
             pg.display.flip()
+            controller.update_needed = False
 
     pg.quit()
 
