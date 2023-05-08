@@ -3,7 +3,7 @@ import numpy as np
 import numbers
 from typing import Optional
 
-from misc import debug
+from matrices import create_affine_transformation
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
@@ -25,40 +25,19 @@ class CoordinateSystem:
         self.coord: np.ndarray = coord
 
     @classmethod
-    def create(cls, scale=1, translation=1) -> CoordinateSystem:
-        if isinstance(scale, numbers.Number):
-            scale = (scale, scale)
-        scale_coord = np.array(
-            [[scale[0], 0, 0],
-             [0, scale[1], 0],
-             [0, 0, 1]]
-        ).T
-        if isinstance(translation, numbers.Number):
-            translation = (translation, translation)
-        translate_coord = np.array(
-            [[1, 0, translation[0]],
-             [0, 1, translation[1]],
-             [0, 0, 1]]
-        ).T
-        return CoordinateSystem(scale_coord @ translate_coord)
+    def create(cls, translation=0, scale=1) -> CoordinateSystem:
+        mat = create_affine_transformation(translation, scale)
+        return CoordinateSystem(mat)
 
     def zoom_out(self):
         scale = 1 / 1.2
-        scale_coord = np.array(
-            [[scale, 0, 0],
-             [0, scale, 0],
-             [0, 0, 1]]
-        ).T
-        self.coord = scale_coord @ self.coord
+        scale_mat = create_affine_transformation(scale=scale)
+        self.coord = scale_mat @ self.coord
 
     def zoom_in(self):
         scale = 1.2
-        scale_coord = np.array(
-            [[scale, 0, 0],
-             [0, scale, 0],
-             [0, 0, 1]]
-        ).T
-        self.coord = scale_coord @ self.coord
+        scale_mat = create_affine_transformation(scale=scale)
+        self.coord = scale_mat @ self.coord
 
     def __call__(self, mat: np.ndarray):
         """
