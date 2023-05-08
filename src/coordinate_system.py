@@ -11,7 +11,7 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 class CoordinateSystem:
     def __init__(self, coord: Optional[np.ndarray] = None):
         if coord is None:
-            coord = create_affine_transformation(DEFAULT_SCREEN_SIZE/2, 100)
+            coord = create_affine_transformation(DEFAULT_SCREEN_SIZE/2, (100, -100))
         self.coord: np.ndarray = coord
 
     @classmethod
@@ -30,6 +30,7 @@ class CoordinateSystem:
         self.coord = scale_mat @ self.coord
 
     def translate(self, direction):
+        direction *= np.array([1, -1])
         translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
         self.coord = translation_mat @ self.coord
 
