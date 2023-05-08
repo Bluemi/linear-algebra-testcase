@@ -29,6 +29,10 @@ class CoordinateSystem:
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = scale_mat @ self.coord
 
+    def translate(self, direction):
+        translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
+        self.coord = translation_mat @ self.coord
+
     def __call__(self, mat: np.ndarray):
         """
         Transform the given matrix with the internal coordinates.
