@@ -20,7 +20,7 @@ def main():
     while controller.running:
         events = [pg.event.wait()]
         for event in events + pg.event.get():
-            controller.handle_event(event, coordinate_system)
+            controller.handle_event(event, coordinate_system, element_buffer)
 
         if controller.update_needed:
             render(screen, coordinate_system, element_buffer)

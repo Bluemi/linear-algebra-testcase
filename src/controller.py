@@ -2,6 +2,7 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
+from element_buffer import ElementBuffer
 
 
 class Controller:
@@ -10,7 +11,7 @@ class Controller:
         self.update_needed = True
         self.is_dragging = False
 
-    def handle_event(self, event, coordinate_system: CoordinateSystem):
+    def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
         if event.type == pg.QUIT:
             self.running = False
         elif event.type == pg.MOUSEWHEEL:
@@ -27,6 +28,14 @@ class Controller:
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
                 self.update_needed = True
+        elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
+            self.update_needed = True
+        elif event.type == pg.KEYUP:
+            if event.unicode == 'n':
+                element_buffer.generate_transform(default=False)
+                self.update_needed = True
+            elif event.key == 27:
+                self.running = False
         else:
             # print(event)
             pass
