@@ -42,6 +42,24 @@ class CoordinateSystem:
         ).T
         return CoordinateSystem(scale_coord @ translate_coord)
 
+    def zoom_out(self):
+        scale = 1 / 1.2
+        scale_coord = np.array(
+            [[scale, 0, 0],
+             [0, scale, 0],
+             [0, 0, 1]]
+        ).T
+        self.coord = scale_coord @ self.coord
+
+    def zoom_in(self):
+        scale = 1.2
+        scale_coord = np.array(
+            [[scale, 0, 0],
+             [0, scale, 0],
+             [0, 0, 1]]
+        ).T
+        self.coord = scale_coord @ self.coord
+
     def __call__(self, mat: np.ndarray):
         """
         Transform the given matrix with the internal coordinates.
