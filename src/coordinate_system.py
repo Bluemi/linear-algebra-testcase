@@ -11,17 +11,7 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 class CoordinateSystem:
     def __init__(self, coord: Optional[np.ndarray] = None):
         if coord is None:
-            scale_coord = np.array(
-                [[100, 0, 0],
-                 [0, 100, 0],
-                 [0, 0, 1]]
-            ).T
-            translate_coord = np.array(
-                [[1, 0, DEFAULT_SCREEN_SIZE[0]/2],
-                 [0, 1, DEFAULT_SCREEN_SIZE[1]/2],
-                 [0, 0, 1]]
-            ).T
-            coord = scale_coord @ translate_coord
+            coord = create_affine_transformation(DEFAULT_SCREEN_SIZE/2, 100)
         self.coord: np.ndarray = coord
 
     @classmethod
