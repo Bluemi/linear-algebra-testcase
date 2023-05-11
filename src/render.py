@@ -39,20 +39,30 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem)
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
     zero_point = coordinate_system.transform(np.array([0, 0]))
-    for vector in element_buffer.vectors:
-        transformed_vec = coordinate_system.transform(vector)
-        pg.draw.line(screen, "red", zero_point, transformed_vec)
 
-    transformed_points = coordinate_system.transform(element_buffer.points)
-    for p in transformed_points:
-        if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
-            pg.draw.circle(screen, "green", p, 2)
+    if element_buffer.vectors:
+        for vector in element_buffer.vectors:
+            transformed_vec = coordinate_system.transform(vector)
+            pg.draw.line(screen, "green", zero_point, transformed_vec)
 
-    transformed_points = coordinate_system.transform(element_buffer.points_transformed)
-    for p in transformed_points:
-        if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
-            pg.draw.circle(screen, "red", p, 2)
+    if element_buffer.vectors_transformed:
+        for vector in element_buffer.vectors_transformed:
+            transformed_vec = coordinate_system.transform(vector)
+            pg.draw.line(screen, "red", zero_point, transformed_vec)
 
-    transformed_eig_vecs = coordinate_system.transform(element_buffer.eig_vecs)
-    for p in transformed_eig_vecs:
-        pg.draw.line(screen, "red", zero_point, p)
+    if element_buffer.points:
+        transformed_points = coordinate_system.transform(element_buffer.points)
+        for p in transformed_points:
+            if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
+                pg.draw.circle(screen, "green", p, 2)
+
+    if element_buffer.points_transformed:
+        transformed_points = coordinate_system.transform(element_buffer.points_transformed)
+        for p in transformed_points:
+            if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
+                pg.draw.circle(screen, "red", p, 2)
+
+    if element_buffer.eig_vecs:
+        transformed_eig_vecs = coordinate_system.transform(element_buffer.eig_vecs)
+        for p in transformed_eig_vecs:
+            pg.draw.line(screen, "red", zero_point, p)

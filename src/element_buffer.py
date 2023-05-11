@@ -4,18 +4,20 @@ import numpy as np
 class ElementBuffer:
     def __init__(self):
         self.vectors = []
-        self.points = None
-        self.points_transformed = None
-        self.eig_vecs = None
+        self.vectors_transformed = []
+        self.points = []
+        self.points_transformed = []
+        self.eig_vecs = []
 
     def create_example_elements(self):
         # create circle
-        angles = np.linspace(0, 2*np.pi, num=360*10, endpoint=False)
-        x = np.cos(angles)
-        y = np.sin(angles)
-        self.points = np.stack([x, y], axis=1)
+        # angles = np.linspace(0, 2*np.pi, num=360*10, endpoint=False)
+        # x = np.cos(angles)
+        # y = np.sin(angles)
+        # self.points = np.stack([x, y], axis=1)
 
-        self.generate_transform()
+        # self.generate_transform()
+        self.generate_rotation_vec()
 
     def generate_transform(self, default=True, verbose=False):
         if default:
@@ -33,4 +35,18 @@ class ElementBuffer:
         self.eig_vecs = (eig_vecs * eig_values).T
         if verbose:
             print('eig vecs scaled:', self.eig_vecs)
+
+    def generate_rotation_vec(self):
+        vec = np.random.normal(size=2)
+
+        angle = np.pi / 2
+        rotation_matrix = np.array([
+            [np.cos(angle), -np.sin(angle)],
+            [np.sin(angle), np.cos(angle)]
+        ])
+
+        self.vectors = [vec]
+
+        transformed_vec = rotation_matrix @ vec
+        self.vectors_transformed = [transformed_vec]
 

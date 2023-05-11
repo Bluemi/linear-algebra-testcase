@@ -32,7 +32,8 @@ class Controller:
             self.update_needed = True
         elif event.type == pg.KEYUP:
             if event.unicode == 'n':
-                element_buffer.generate_transform(default=False)
+                # element_buffer.generate_transform(default=False)
+                element_buffer.generate_rotation_vec()
                 self.update_needed = True
             elif event.key == 27:
                 self.running = False
