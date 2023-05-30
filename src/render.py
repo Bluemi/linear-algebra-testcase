@@ -6,13 +6,13 @@ from coordinate_system import CoordinateSystem
 from element_buffer import ElementBuffer
 
 
-def render(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
+def render(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font):
     screen.fill("black")
-    draw_coordinate_system(screen, coordinate_system)
+    draw_coordinate_system(screen, coordinate_system, render_font)
     draw_elements(screen, coordinate_system, element_buffer)
 
 
-def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem):
+def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem, render_font):
     extreme_points = np.array([
         [0, 0],
         [screen.get_width(), screen.get_height()]
@@ -35,6 +35,22 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem)
         if y == 0:
             color = Color(50, 50, 50)
         pg.draw.line(screen, color, transformed_horizontal_lines[0], transformed_horizontal_lines[1])
+
+    # draw numbers
+    zero_point = coordinate_system.transform(np.array([0, 0]))
+    if 0 < zero_point[0] < screen.get_width():
+        for y in range(extreme_points[1, 1], extreme_points[0, 1] + 2):
+            font = render_font.render(str(y), True, pg.Color(120, 120, 120), pg.Color(0, 0, 0, 0))
+            pos = coordinate_system.transform(np.array([0, y]))
+            pos += 10
+            screen.blit(font, pos)
+
+    if 0 < zero_point[1] < screen.get_height():
+        for x in range(extreme_points[0, 0]-1, extreme_points[1, 0] + 1):
+            font = render_font.render(str(x), True, pg.Color(120, 120, 120), pg.Color(0, 0, 0, 0))
+            pos = coordinate_system.transform(np.array([x, 0]))
+            pos += 10
+            screen.blit(font, pos)
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):

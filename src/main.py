@@ -16,6 +16,7 @@ def main():
     coordinate_system = CoordinateSystem()
     element_buffer = ElementBuffer()
     element_buffer.create_example_elements()
+    render_font = pg.font.Font(pg.font.get_default_font(), 18)
 
     while controller.running:
         events = [pg.event.wait()]
@@ -23,7 +24,7 @@ def main():
             controller.handle_event(event, coordinate_system, element_buffer)
 
         if controller.update_needed:
-            render(screen, coordinate_system, element_buffer)
+            render(screen, coordinate_system, element_buffer, render_font)
             pg.display.flip()
             controller.update_needed = False
 

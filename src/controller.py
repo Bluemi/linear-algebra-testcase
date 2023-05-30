@@ -10,6 +10,7 @@ class Controller:
         self.running = True
         self.update_needed = True
         self.is_dragging = False
+        self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
         if event.type == pg.QUIT:
@@ -28,6 +29,7 @@ class Controller:
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
                 self.update_needed = True
+            self.mouse_position = np.array(event.pos, dtype=int)
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
         elif event.type == pg.KEYUP:
@@ -40,3 +42,7 @@ class Controller:
         else:
             # print(event)
             pass
+
+    def update_element_buffer(self, element_buffer: ElementBuffer):
+        # set selected element
+        element_buffer()

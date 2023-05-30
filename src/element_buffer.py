@@ -9,6 +9,8 @@ class ElementBuffer:
         self.points_transformed = []
         self.eig_vecs = []
 
+        self.elements = []
+
     def create_example_elements(self):
         # create circle
         # angles = np.linspace(0, 2*np.pi, num=360*10, endpoint=False)
@@ -50,3 +52,12 @@ class ElementBuffer:
         transformed_vec = rotation_matrix @ vec
         self.vectors_transformed = [transformed_vec]
 
+
+class Element:
+    def __init__(self):
+        pass
+
+
+class Vector(Element):
+    def __init__(self):
+        super().__init__()
