@@ -2,14 +2,18 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Color
 
+from controller import Controller
 from coordinate_system import CoordinateSystem
-from element_buffer import ElementBuffer
+from elements import ElementBuffer, Vector
 
 
-def render(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font):
+def render(
+    screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font,
+    controller: Controller
+):
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
-    draw_elements(screen, coordinate_system, element_buffer)
+    draw_elements(screen, coordinate_system, element_buffer, controller)
 
 
 def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem, render_font):
@@ -53,32 +57,13 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
             screen.blit(font, pos)
 
 
-def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
+def draw_elements(
+    screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, controller: Controller
+):
     zero_point = coordinate_system.transform(np.array([0, 0]))
 
-    if element_buffer.vectors:
-        for vector in element_buffer.vectors:
-            transformed_vec = coordinate_system.transform(vector)
-            pg.draw.line(screen, "green", zero_point, transformed_vec)
-
-    if element_buffer.vectors_transformed:
-        for vector in element_buffer.vectors_transformed:
-            transformed_vec = coordinate_system.transform(vector)
-            pg.draw.line(screen, "red", zero_point, transformed_vec)
-
-    if element_buffer.points:
-        transformed_points = coordinate_system.transform(element_buffer.points)
-        for p in transformed_points:
-            if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
-                pg.draw.circle(screen, "green", p, 2)
-
-    if element_buffer.points_transformed:
-        transformed_points = coordinate_system.transform(element_buffer.points_transformed)
-        for p in transformed_points:
-            if 0 <= p[0] <= screen.get_width() and 0 <= p[1] <= screen.get_height():
-                pg.draw.circle(screen, "red", p, 2)
-
-    if element_buffer.eig_vecs:
-        transformed_eig_vecs = coordinate_system.transform(element_buffer.eig_vecs)
-        for p in transformed_eig_vecs:
-            pg.draw.line(screen, "red", zero_point, p)
+    for element in element_buffer.elements:
+        if isinstance(element, Vector):
+            transformed_vec = coordinate_system.transform(element.coordinates)
+            width = 3 if element.is_hovered(controller.mouse_position, coordinate_system) else 1
+            pg.draw.line(screen, "red", zero_point, transformed_vec, width=width)

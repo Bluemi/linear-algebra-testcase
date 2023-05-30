@@ -2,7 +2,7 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from element_buffer import ElementBuffer
+from elements import ElementBuffer
 
 
 class Controller:
@@ -28,14 +28,13 @@ class Controller:
         elif event.type == pg.MOUSEMOTION:
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
-                self.update_needed = True
             self.mouse_position = np.array(event.pos, dtype=int)
+            self.update_needed = True
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
         elif event.type == pg.KEYUP:
             if event.unicode == 'n':
                 # element_buffer.generate_transform(default=False)
-                element_buffer.generate_rotation_vec()
                 self.update_needed = True
             elif event.key == 27:
                 self.running = False
@@ -45,4 +44,5 @@ class Controller:
 
     def update_element_buffer(self, element_buffer: ElementBuffer):
         # set selected element
-        element_buffer()
+        # element_buffer()
+        pass

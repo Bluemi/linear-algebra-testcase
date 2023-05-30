@@ -5,7 +5,7 @@ import pygame as pg
 
 from controller import Controller
 from coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
-from element_buffer import ElementBuffer
+from elements import ElementBuffer
 from render import render
 
 
@@ -24,7 +24,7 @@ def main():
             controller.handle_event(event, coordinate_system, element_buffer)
 
         if controller.update_needed:
-            render(screen, coordinate_system, element_buffer, render_font)
+            render(screen, coordinate_system, element_buffer, render_font, controller)
             pg.display.flip()
             controller.update_needed = False
 
