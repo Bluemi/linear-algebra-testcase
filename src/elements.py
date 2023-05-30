@@ -22,6 +22,10 @@ class Element:
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return
 
+    @abc.abstractmethod
+    def move_to(self, mouse_position: np.ndarray):
+        return
+
 
 class Vector(Element):
     def __init__(self, coordinates: np.ndarray):
@@ -32,3 +36,6 @@ class Vector(Element):
         pos = coordinate_system.transform(self.coordinates)
         diff = np.sum((mouse_position - pos)**2)
         return diff < 100
+
+    def move_to(self, mouse_position: np.ndarray):
+        self.coordinates = mouse_position.astype(dtype=float)

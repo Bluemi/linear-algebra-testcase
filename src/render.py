@@ -66,4 +66,4 @@ def draw_elements(
         if isinstance(element, Vector):
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 3 if element.is_hovered(controller.mouse_position, coordinate_system) else 1
-            pg.draw.line(screen, "red", zero_point, transformed_vec, width=width)
+            pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=width)
