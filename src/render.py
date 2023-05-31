@@ -96,19 +96,16 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
 def draw_user_interface(screen: Surface, user_interface: UserInterface, element_buffer: ElementBuffer,
                         controller: Controller, render_font: pg.font.Font):
-    element_y_pos = 60
+    user_interface.recreate_ui_elements(element_buffer)
     if user_interface.showing:
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
-        font = render_font.render('Objects', True, pg.Color(180, 180, 180))
-        screen.blit(font, pg.Rect(10, element_y_pos, 120, 20))
-        element_y_pos += 25
 
-        for element in element_buffer:
-            rect = pg.Rect(20, element_y_pos, 180, 20)
-            brightness = 220 if element.hovered else 180
-            font = render_font.render(repr(element), True, pg.Color(brightness, brightness, brightness))
-            screen.blit(font, rect)
-            element_y_pos += 25
+        for ui_element in user_interface.ui_elements:
+            brightness = 180
+            if ui_element.associated_element and ui_element.associated_element.hovered:
+                brightness = 220
+            font = render_font.render(ui_element.text, True, pg.Color(brightness, brightness, brightness))
+            screen.blit(font, ui_element.rect)
 
     # draw menu rect
     alpha = 255 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180

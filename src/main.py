@@ -26,6 +26,7 @@ def main():
             controller.handle_event(event, coordinate_system, element_buffer, user_interface)
 
         if controller.update_needed:
+            user_interface.recreate_ui_elements(element_buffer)
             render(screen, coordinate_system, element_buffer, render_font, controller, user_interface)
             pg.display.flip()
             controller.update_needed = False
