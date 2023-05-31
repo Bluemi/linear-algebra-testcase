@@ -2,8 +2,8 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element
-from user_interface import UserInterface
+from elements import ElementBuffer, Element, Transform
+from user_interface import UserInterface, Action, UIElement, UIText
 
 
 class Controller:
@@ -13,14 +13,16 @@ class Controller:
         self.is_dragging = False
         self.dragged_element: Element or None = None
         self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
+        self.actions = []
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
+        self.actions = []
         if event.type == pg.QUIT:
             self.running = False
         elif event.type == pg.MOUSEWHEEL:
             if user_interface.showing and user_interface.ui_rect.collidepoint(self.mouse_position):
-                user_interface.scroll_position = max(user_interface.scroll_position + event.y * 8, 0)
+                user_interface.scroll_position = max(user_interface.scroll_position - event.y * 8, 0)
             else:
                 if event.y < 0:
                     coordinate_system.zoom_out()
@@ -33,7 +35,10 @@ class Controller:
                 self.update_needed = True
             else:
                 if user_interface.showing and user_interface.ui_rect.collidepoint(self.mouse_position):
-                    pass  # handle mouse press in ui rect
+                    # handle mouse press in ui rect
+                    for ui_element in user_interface.ui_elements:
+                        if ui_element.rect.collidepoint(self.mouse_position):
+                            self.actions.append(ui_element.on_click())
                 else:
                     self.is_dragging = True
                     for element in element_buffer.elements:
@@ -63,6 +68,8 @@ class Controller:
         else:
             # print(event)
             pass
+
+        self.handle_actions(element_buffer)
         self.handle_hovering(element_buffer, coordinate_system, user_interface)
 
     def update_element_buffer(self, element_buffer: ElementBuffer):
@@ -77,6 +84,12 @@ class Controller:
 
         if user_interface.showing:
             for ui_element in user_interface.ui_elements:
-                if ui_element.associated_element:
-                    if ui_element.rect.collidepoint(self.mouse_position):
-                        ui_element.associated_element.hovered = True
+                if isinstance(ui_element, UIText):
+                    if ui_element.associated_element:
+                        if ui_element.rect.collidepoint(self.mouse_position):
+                            ui_element.associated_element.hovered = True
+
+    def handle_actions(self, element_buffer: ElementBuffer):
+        for action in self.actions:
+            if action == Action.ADD_TRANSFORM:
+                element_buffer.transforms.append(Transform())

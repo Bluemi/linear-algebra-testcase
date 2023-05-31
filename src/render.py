@@ -5,7 +5,7 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from elements import ElementBuffer, Vector
-from user_interface import UserInterface
+from user_interface import UserInterface, UIText, UIButton, UIMatrix
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -102,11 +102,42 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
         for ui_element in user_interface.ui_elements:
-            brightness = 180
-            if ui_element.associated_element and ui_element.associated_element.hovered:
-                brightness = 220
-            font = render_font.render(ui_element.text, True, pg.Color(brightness, brightness, brightness))
-            screen.blit(font, ui_element.rect)
+            if isinstance(ui_element, UIText):
+                brightness = 180
+                if ui_element.associated_element and ui_element.associated_element.hovered:
+                    brightness = 220
+                font = render_font.render(ui_element.text, True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect)
+            if isinstance(ui_element, UIButton):
+                brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
+                pg.draw.rect(screen, Color(brightness, brightness, brightness), ui_element.rect, border_radius=4)
+                if ui_element.sign == UIButton.Sign.PLUS:
+                    horizontal_rect = pg.Rect(ui_element.rect.left+4, ui_element.rect.top+11, ui_element.rect.width-8, 3)
+                    pg.draw.rect(
+                        screen, Color(brightness-70, brightness-70, brightness-70), horizontal_rect, border_radius=2
+                    )
+                    vertical_rect = pg.Rect(ui_element.rect.left+11, ui_element.rect.top+4, 3, ui_element.rect.height-8)
+                    pg.draw.rect(
+                        screen, Color(brightness-70, brightness-70, brightness-70), vertical_rect, border_radius=2
+                    )
+            if isinstance(ui_element, UIMatrix):
+                brightness = 180
+                if ui_element.rect.collidepoint(controller.mouse_position):
+                    brightness = 220
+                font = render_font.render('Matrix', True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect.move(0, 15))
+
+                font = render_font.render(str(ui_element.associated_transform.matrix[0, 0]), True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect.move(80, 3))
+
+                font = render_font.render(str(ui_element.associated_transform.matrix[0, 1]), True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect.move(120, 3))
+
+                font = render_font.render(str(ui_element.associated_transform.matrix[1, 0]), True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect.move(80, 27))
+
+                font = render_font.render(str(ui_element.associated_transform.matrix[1, 1]), True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect.move(120, 27))
 
     # draw menu rect
     alpha = 210 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180

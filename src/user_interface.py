@@ -1,8 +1,9 @@
+import enum
 from typing import List, Optional
 
 import pygame as pg
 
-from elements import Element
+from elements import Element, Transform, ElementBuffer
 
 
 class UserInterface:
@@ -32,33 +33,77 @@ class UserInterface:
     def toggle(self):
         self.showing = not self.showing
 
-    def recreate_ui_elements(self, element_buffer):
+    def recreate_ui_elements(self, element_buffer: ElementBuffer):
         self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
 
         self.ui_elements = []
         element_y_pos = 60 - self.scroll_position
 
         # Object title
-        objects_title = UIElement('Objects', pg.Rect(10, element_y_pos, 120, 20))
+        objects_title = UIText('Objects', pg.Rect(10, element_y_pos, 120, 20))
         self.ui_elements.append(objects_title)
         element_y_pos += 25
 
         # Objects
         for element in element_buffer:
             rect = pg.Rect(20, element_y_pos, 180, 20)
-            ui_element = UIElement(repr(element), rect, element)
+            ui_element = UIText(repr(element), rect, element)
             self.ui_elements.append(ui_element)
             element_y_pos += 25
 
         # Transforms Title
         element_y_pos += 10
-        transforms_title = UIElement('Transforms', pg.Rect(10, element_y_pos, 120, 20))
+        transforms_title = UIText('Transforms', pg.Rect(10, element_y_pos, 120, 20))
         self.ui_elements.append(transforms_title)
+
+        # Add Button
+        transform_add_button = UIButton(pg.Rect(120, element_y_pos-4, 25, 25), sign=UIButton.Sign.PLUS)
+        self.ui_elements.append(transform_add_button)
         element_y_pos += 25
+
+        # Transform Objects
+        for transform in element_buffer.transforms:
+            rect = pg.Rect(20, element_y_pos, 180, 50)
+            transform_element = UIMatrix(rect, transform)
+            self.ui_elements.append(transform_element)
+            element_y_pos += 60
+
+
+class Action(enum.Enum):
+    ADD_TRANSFORM = 0
 
 
 class UIElement:
-    def __init__(self, text, rect, associated_element=None):
-        self.text: str = text
+    def __init__(self, rect):
         self.rect: pg.Rect = rect
+
+    def on_click(self):
+        return
+
+
+class UIText(UIElement):
+    def __init__(self, text, rect, associated_element=None):
+        super().__init__(rect)
+        self.text: str = text
         self.associated_element: Optional[Element] = associated_element
+
+
+class UIMatrix(UIElement):
+    def __init__(self, rect, associated_transform):
+        super().__init__(rect)
+        self.associated_transform: Optional[Transform] = associated_transform
+
+    def on_click(self):
+        return
+
+
+class UIButton(UIElement):
+    class Sign(enum.Enum):
+        PLUS = 0
+
+    def __init__(self, rect, sign=None):
+        super().__init__(rect)
+        self.sign = sign
+
+    def on_click(self) -> Action:
+        return Action.ADD_TRANSFORM

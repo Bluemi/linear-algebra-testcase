@@ -38,9 +38,15 @@ class Vector(Element):
         return 'Vector [{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
 
 
+class Transform:
+    def __init__(self):
+        self.matrix = np.eye(2)
+
+
 class ElementBuffer:
     def __init__(self):
         self.elements = []
+        self.transforms = []
 
     def __iter__(self) -> Iterator[Element]:
         return iter(self.elements)
