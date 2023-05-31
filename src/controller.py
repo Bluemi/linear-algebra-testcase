@@ -19,10 +19,13 @@ class Controller:
         if event.type == pg.QUIT:
             self.running = False
         elif event.type == pg.MOUSEWHEEL:
-            if event.y < 0:
-                coordinate_system.zoom_out()
+            if user_interface.showing and user_interface.ui_rect.collidepoint(self.mouse_position):
+                user_interface.scroll_position = max(user_interface.scroll_position + event.y * 8, 0)
             else:
-                coordinate_system.zoom_in()
+                if event.y < 0:
+                    coordinate_system.zoom_out()
+                else:
+                    coordinate_system.zoom_in()
             self.update_needed = True
         elif event.type == pg.MOUSEBUTTONDOWN:
             if user_interface.menu_rect.collidepoint(self.mouse_position):

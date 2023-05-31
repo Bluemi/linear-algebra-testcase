@@ -11,8 +11,10 @@ class UserInterface:
         self.menu_rect = pg.Rect(10, 10, 40, 40)
         self.menu_image = self._create_menu_image()
 
-        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
         self.ui_elements: List[UIElement] = []
+        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
+
+        self.scroll_position = 0
 
     def _create_menu_image(self):
         menu_image = pg.Surface((self.menu_rect.width,  self.menu_rect.height))
@@ -31,8 +33,10 @@ class UserInterface:
         self.showing = not self.showing
 
     def recreate_ui_elements(self, element_buffer):
+        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
+
         self.ui_elements = []
-        element_y_pos = 60
+        element_y_pos = 60 - self.scroll_position
 
         # Object title
         objects_title = UIElement('Objects', pg.Rect(10, element_y_pos, 120, 20))

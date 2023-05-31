@@ -3,7 +3,7 @@ import pygame as pg
 from pygame import Surface, Color
 
 from controller import Controller
-from coordinate_system import CoordinateSystem
+from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from elements import ElementBuffer, Vector
 from user_interface import UserInterface
 
@@ -17,7 +17,7 @@ def render(
 ):
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
-    draw_elements(screen, coordinate_system, element_buffer, controller)
+    draw_elements(screen, coordinate_system, element_buffer)
     draw_user_interface(screen, user_interface, element_buffer, controller, render_font)
 
 
@@ -44,7 +44,8 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
         [screen.get_width(), screen.get_height()]
     ])
     extreme_points = coordinate_system.transform_inverse(extreme_points)
-    target_dividend = (extreme_points[1, 0] - extreme_points[0, 0]) / TARGET_NUM_POINTS
+    target_num_points = TARGET_NUM_POINTS * screen.get_width() // DEFAULT_SCREEN_SIZE[0]
+    target_dividend = (extreme_points[1, 0] - extreme_points[0, 0]) / target_num_points
     # extreme_points = np.trunc(extreme_points).astype(int)
     dividend = adapt_quotient(target_dividend)
     x_minimum = np.round(extreme_points[0, 0] / dividend) * dividend
@@ -96,7 +97,7 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
 def draw_user_interface(screen: Surface, user_interface: UserInterface, element_buffer: ElementBuffer,
                         controller: Controller, render_font: pg.font.Font):
-    user_interface.recreate_ui_elements(element_buffer)
+    # user_interface.recreate_ui_elements(element_buffer)
     if user_interface.showing:
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
@@ -108,14 +109,12 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, element_
             screen.blit(font, ui_element.rect)
 
     # draw menu rect
-    alpha = 255 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
+    alpha = 210 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
     user_interface.menu_image.set_alpha(alpha)
     screen.blit(user_interface.menu_image, user_interface.menu_rect)
 
 
-def draw_elements(
-    screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, controller: Controller
-):
+def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
     zero_point = coordinate_system.transform(np.array([0, 0]))
 
     for element in element_buffer.elements:
