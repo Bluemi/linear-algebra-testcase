@@ -40,7 +40,7 @@ class Vector(Element):
 
 class Transform:
     def __init__(self):
-        self.matrix = (1 - np.eye(2))
+        self.matrix = np.eye(2)
 
     def __repr__(self):
         # return '[[{:.2f}, {:.2f}], [{:.2f}, {:.2f}]]'.format(*self.matrix.flatten())

@@ -93,6 +93,7 @@ class ActionType(enum.Enum):
     ADD_TRANSFORM = 0
     ADD_TRANSFORMED = 1
     PICK_FOR_TRANSFORMED = 2
+    PICK_TRANSFORM_VAL = 3
 
 
 class Action:
@@ -126,6 +127,25 @@ class UIMatrix(UIElement):
     def __init__(self, rect, associated_transform):
         super().__init__(rect)
         self.associated_transform: Optional[Transform] = associated_transform
+
+    def on_click(self, mouse_position) -> Optional[Action]:
+        small_rect = self.rect.copy()
+        small_rect.width = 30
+        small_rect.height = 20
+
+        if small_rect.move(80, 3).collidepoint(mouse_position):
+            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (0, 0), 'transform': self.associated_transform})
+
+        if small_rect.move(130, 3).collidepoint(mouse_position):
+            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (0, 1), 'transform': self.associated_transform})
+
+        if small_rect.move(80, 27).collidepoint(mouse_position):
+            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (1, 0), 'transform': self.associated_transform})
+
+        if small_rect.move(130, 27).collidepoint(mouse_position):
+            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (1, 1), 'transform': self.associated_transform})
+
+        return None
 
 
 class UITransformed(UIElement):

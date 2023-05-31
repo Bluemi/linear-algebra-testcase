@@ -18,6 +18,7 @@ class Controller:
         self.actions = []
 
         self.selected_transformed: Optional[Transformed] = None
+        self.selected_transform: Optional = None
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
@@ -66,12 +67,17 @@ class Controller:
         elif event.type == pg.MOUSEBUTTONUP:
             self.is_dragging = False
             self.dragged_element = None
+            self.selected_transform = None
         elif event.type == pg.MOUSEMOTION:
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
             if self.dragged_element:
                 pos = coordinate_system.transform_inverse(np.array(event.pos))
                 self.dragged_element.move_to(pos)
+            if self.selected_transform is not None:
+                transform = self.selected_transform['transform']
+                index = self.selected_transform['index']
+                transform.matrix[index] -= event.rel[1] * 0.01
             self.mouse_position = np.array(event.pos, dtype=int)
             self.update_needed = True
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
@@ -116,4 +122,7 @@ class Controller:
                 self.update_needed = True
             elif action.action_type == ActionType.PICK_FOR_TRANSFORMED:
                 self.selected_transformed = action.data['transformed']
+                self.update_needed = True
+            elif action.action_type == ActionType.PICK_TRANSFORM_VAL:
+                self.selected_transform = action.data
                 self.update_needed = True
