@@ -4,7 +4,7 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element, Transform, Transformed
+from elements import ElementBuffer, Element, Transform, Transformed, Vector
 from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix
 
 
@@ -114,7 +114,10 @@ class Controller:
 
     def handle_actions(self, element_buffer: ElementBuffer):
         for action in self.actions:
-            if action.action_type == ActionType.ADD_TRANSFORM:
+            if action.action_type == ActionType.ADD_VECTOR:
+                element_buffer.elements.append(Vector(np.array([1, 0])))
+                self.update_needed = True
+            elif action.action_type == ActionType.ADD_TRANSFORM:
                 element_buffer.transforms.append(Transform())
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_TRANSFORMED:

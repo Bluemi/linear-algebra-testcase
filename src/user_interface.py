@@ -42,6 +42,10 @@ class UserInterface:
         # Object title
         objects_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Objects')
         self.ui_elements.append(objects_title)
+
+        vector_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_VECTOR,
+                                     sign=UIButton.Sign.PLUS)
+        self.ui_elements.append(vector_add_button)
         element_y_pos += 25
 
         # Objects
@@ -90,10 +94,11 @@ class UserInterface:
 
 @enum.unique
 class ActionType(enum.Enum):
-    ADD_TRANSFORM = 0
-    ADD_TRANSFORMED = 1
-    PICK_FOR_TRANSFORMED = 2
-    PICK_TRANSFORM_VAL = 3
+    ADD_VECTOR = 0
+    ADD_TRANSFORM = 1
+    ADD_TRANSFORMED = 2
+    PICK_FOR_TRANSFORMED = 3
+    PICK_TRANSFORM_VAL = 4
 
 
 class Action:
