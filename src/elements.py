@@ -1,25 +1,16 @@
+from typing import Iterator
+
 import numpy as np
 import abc
 
 from coordinate_system import CoordinateSystem
 
 
-class ElementBuffer:
-    def __init__(self):
-        self.elements = []
-
-    def __iter__(self):
-        return iter(self.elements)
-
-    def create_example_elements(self):
-        self.elements.append(Vector(np.array([1, 1])))
-
-
 class Element:
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
-        pass
+        self.hovered = False
 
     @abc.abstractmethod
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
@@ -45,3 +36,15 @@ class Vector(Element):
 
     def __repr__(self):
         return 'Vector [{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
+
+
+class ElementBuffer:
+    def __init__(self):
+        self.elements = []
+
+    def __iter__(self) -> Iterator[Element]:
+        return iter(self.elements)
+
+    def create_example_elements(self):
+        self.elements.append(Vector(np.array([1, 1])))
+        self.elements.append(Vector(np.array([-1, 1])))

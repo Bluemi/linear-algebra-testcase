@@ -105,7 +105,7 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, element_
 
         for element in element_buffer:
             rect = pg.Rect(20, element_y_pos, 180, 20)
-            brightness = 220 if rect.collidepoint(controller.mouse_position) else 180
+            brightness = 220 if element.hovered else 180
             font = render_font.render(repr(element), True, pg.Color(brightness, brightness, brightness))
             screen.blit(font, rect)
             element_y_pos += 25
@@ -124,5 +124,5 @@ def draw_elements(
     for element in element_buffer.elements:
         if isinstance(element, Vector):
             transformed_vec = coordinate_system.transform(element.coordinates)
-            width = 3 if element.is_hovered(controller.mouse_position, coordinate_system) else 1
+            width = 3 if element.hovered else 1
             pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=width)

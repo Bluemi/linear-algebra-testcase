@@ -57,8 +57,14 @@ class Controller:
         else:
             # print(event)
             pass
+        self.handle_hovering(element_buffer, coordinate_system)
 
     def update_element_buffer(self, element_buffer: ElementBuffer):
         # set selected element
         # element_buffer()
         pass
+
+    def handle_hovering(self, element_buffer: ElementBuffer, coordinate_system: CoordinateSystem):
+        for element in element_buffer:
+            element.hovered = False
+            element.hovered = element.is_hovered(self.mouse_position, coordinate_system)
