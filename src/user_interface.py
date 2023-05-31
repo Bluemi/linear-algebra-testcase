@@ -40,24 +40,24 @@ class UserInterface:
         element_y_pos = 60 - self.scroll_position
 
         # Object title
-        objects_title = UIVector('Objects', pg.Rect(10, element_y_pos, 120, 20))
+        objects_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Objects')
         self.ui_elements.append(objects_title)
         element_y_pos += 25
 
         # Objects
         for element in element_buffer:
             rect = pg.Rect(20, element_y_pos, 180, 20)
-            ui_element = UIVector(repr(element), rect, element)
+            ui_element = UIVector(rect, element)
             self.ui_elements.append(ui_element)
             element_y_pos += 25
 
         # Transforms Title
         element_y_pos += 10
-        transforms_title = UIVector('Transforms', pg.Rect(10, element_y_pos, 120, 20))
+        transforms_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Transforms')
         self.ui_elements.append(transforms_title)
 
         # Add Button
-        transform_add_button = UIButton(pg.Rect(192, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM,
+        transform_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM,
                                         sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transform_add_button)
         element_y_pos += 30
@@ -71,11 +71,11 @@ class UserInterface:
 
         # Transformed Title
         element_y_pos += 10
-        transformed_title = UIVector('Transformed', pg.Rect(10, element_y_pos, 120, 20))
+        transformed_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Transformed')
         self.ui_elements.append(transformed_title)
 
         # Add Button
-        transformed_add_button = UIButton(pg.Rect(192, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
+        transformed_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
                                           sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transformed_add_button)
         element_y_pos += 30
@@ -110,10 +110,15 @@ class UIElement:
         return None
 
 
-class UIVector(UIElement):
-    def __init__(self, text, rect, associated_vector=None):
+class UIText(UIElement):
+    def __init__(self, rect, text):
         super().__init__(rect)
-        self.text: str = text
+        self.text = text
+
+
+class UIVector(UIElement):
+    def __init__(self, rect, associated_vector=None):
+        super().__init__(rect)
         self.associated_vector: Optional[Element] = associated_vector
 
 

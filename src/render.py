@@ -5,7 +5,7 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from elements import ElementBuffer, Vector, Transformed
-from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed
+from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed, UIText
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -102,11 +102,14 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
         for ui_element in user_interface.ui_elements:
+            if isinstance(ui_element, UIText):
+                font = render_font.render(ui_element.text, True, pg.Color(180, 180, 180))
+                screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIVector):
                 brightness = 180
                 if ui_element.associated_vector and ui_element.associated_vector.hovered:
                     brightness = 220
-                font = render_font.render('Vector ' + ui_element.text, True, pg.Color(brightness, brightness, brightness))
+                font = render_font.render('Vector ' + repr(ui_element.associated_vector), True, pg.Color(brightness, brightness, brightness))
                 screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIButton):
                 brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
