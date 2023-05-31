@@ -18,7 +18,7 @@ def render(
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
     draw_elements(screen, coordinate_system, element_buffer)
-    draw_user_interface(screen, user_interface, element_buffer, controller, render_font)
+    draw_user_interface(screen, user_interface, controller, render_font)
 
 
 def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem, render_font):
@@ -95,8 +95,8 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
                 screen.blit(font, pos)
 
 
-def draw_user_interface(screen: Surface, user_interface: UserInterface, element_buffer: ElementBuffer,
-                        controller: Controller, render_font: pg.font.Font):
+def draw_user_interface(screen: Surface, user_interface: UserInterface, controller: Controller,
+                        render_font: pg.font.Font):
     # user_interface.recreate_ui_elements(element_buffer)
     if user_interface.showing:
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)

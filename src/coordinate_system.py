@@ -1,6 +1,5 @@
 from __future__ import annotations
 import numpy as np
-import numbers
 from typing import Optional
 
 from matrices import create_affine_transformation
