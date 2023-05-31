@@ -32,12 +32,15 @@ class Controller:
                 user_interface.toggle()
                 self.update_needed = True
             else:
-                self.is_dragging = True
-                for element in element_buffer.elements:
-                    if element.is_hovered(self.mouse_position, coordinate_system):
-                        self.dragged_element = element
-                        self.is_dragging = False
-                        break
+                if user_interface.showing and user_interface.ui_rect.collidepoint(self.mouse_position):
+                    pass  # handle mouse press in ui rect
+                else:
+                    self.is_dragging = True
+                    for element in element_buffer.elements:
+                        if element.is_hovered(self.mouse_position, coordinate_system):
+                            self.dragged_element = element
+                            self.is_dragging = False
+                            break
         elif event.type == pg.MOUSEBUTTONUP:
             self.is_dragging = False
             self.dragged_element = None
@@ -72,7 +75,8 @@ class Controller:
         for element in element_buffer:
             element.hovered = element.is_hovered(self.mouse_position, coordinate_system)
 
-        for ui_element in user_interface.ui_elements:
-            if ui_element.associated_element:
-                if ui_element.rect.collidepoint(self.mouse_position):
-                    ui_element.associated_element.hovered = True
+        if user_interface.showing:
+            for ui_element in user_interface.ui_elements:
+                if ui_element.associated_element:
+                    if ui_element.rect.collidepoint(self.mouse_position):
+                        ui_element.associated_element.hovered = True

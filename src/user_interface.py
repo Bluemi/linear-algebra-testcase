@@ -50,6 +50,12 @@ class UserInterface:
             self.ui_elements.append(ui_element)
             element_y_pos += 25
 
+        # Transforms Title
+        element_y_pos += 10
+        transforms_title = UIElement('Transforms', pg.Rect(10, element_y_pos, 120, 20))
+        self.ui_elements.append(transforms_title)
+        element_y_pos += 25
+
 
 class UIElement:
     def __init__(self, text, rect, associated_element=None):
