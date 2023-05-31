@@ -4,8 +4,8 @@ from pygame import Surface, Color
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from elements import ElementBuffer, Vector
-from user_interface import UserInterface, UIText, UIButton, UIMatrix
+from elements import ElementBuffer, Vector, Transformed
+from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -102,11 +102,11 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
         for ui_element in user_interface.ui_elements:
-            if isinstance(ui_element, UIText):
+            if isinstance(ui_element, UIVector):
                 brightness = 180
-                if ui_element.associated_element and ui_element.associated_element.hovered:
+                if ui_element.associated_vector and ui_element.associated_vector.hovered:
                     brightness = 220
-                font = render_font.render(ui_element.text, True, pg.Color(brightness, brightness, brightness))
+                font = render_font.render('Vector ' + ui_element.text, True, pg.Color(brightness, brightness, brightness))
                 screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIButton):
                 brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
@@ -143,6 +143,16 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 pg.draw.line(screen, color, ui_element.rect.move(70, 0).topleft, ui_element.rect.move(70, 50).topleft, width=2)
                 pg.draw.line(screen, color, ui_element.rect.move(155, 0).topleft, ui_element.rect.move(155, 50).topleft, width=2)
 
+            if isinstance(ui_element, UITransformed):
+                brightness = 180
+                if ui_element.rect.collidepoint(controller.mouse_position):
+                    brightness = 220
+                text = 'Transformed {} * {}'.format(
+                    ui_element.associated_transformed.transform, ui_element.associated_transformed.vector
+                )
+                font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect)
+
     # draw menu rect
     alpha = 210 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
     user_interface.menu_image.set_alpha(alpha)
@@ -157,3 +167,11 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 3 if element.hovered else 1
             pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=width)
+
+    for element in element_buffer.transformed:
+        if isinstance(element, Transformed):
+            new_vec = element.get_position()
+            if new_vec is not None:
+                transformed_vec = coordinate_system.transform(new_vec)
+                # width = 3 if element.hovered else 1
+                pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)

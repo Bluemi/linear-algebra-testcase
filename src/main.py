@@ -21,11 +21,11 @@ def main():
     user_interface = UserInterface()
 
     while controller.running:
-        user_interface.recreate_ui_elements(element_buffer)
-
         events = [pg.event.wait()]
         for event in events + pg.event.get():
             controller.handle_event(event, coordinate_system, element_buffer, user_interface)
+
+        user_interface.recreate_ui_elements(element_buffer)
 
         if controller.update_needed:
             render(screen, coordinate_system, element_buffer, render_font, controller, user_interface)

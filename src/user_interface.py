@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import pygame as pg
 
-from elements import Element, Transform, ElementBuffer
+from elements import Element, Transform, ElementBuffer, Transformed
 
 
 class UserInterface:
@@ -40,26 +40,27 @@ class UserInterface:
         element_y_pos = 60 - self.scroll_position
 
         # Object title
-        objects_title = UIText('Objects', pg.Rect(10, element_y_pos, 120, 20))
+        objects_title = UIVector('Objects', pg.Rect(10, element_y_pos, 120, 20))
         self.ui_elements.append(objects_title)
         element_y_pos += 25
 
         # Objects
         for element in element_buffer:
             rect = pg.Rect(20, element_y_pos, 180, 20)
-            ui_element = UIText(repr(element), rect, element)
+            ui_element = UIVector(repr(element), rect, element)
             self.ui_elements.append(ui_element)
             element_y_pos += 25
 
         # Transforms Title
         element_y_pos += 10
-        transforms_title = UIText('Transforms', pg.Rect(10, element_y_pos, 120, 20))
+        transforms_title = UIVector('Transforms', pg.Rect(10, element_y_pos, 120, 20))
         self.ui_elements.append(transforms_title)
 
         # Add Button
-        transform_add_button = UIButton(pg.Rect(120, element_y_pos-4, 25, 25), sign=UIButton.Sign.PLUS)
+        transform_add_button = UIButton(pg.Rect(192, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM,
+                                        sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transform_add_button)
-        element_y_pos += 25
+        element_y_pos += 30
 
         # Transform Objects
         for transform in element_buffer.transforms:
@@ -68,24 +69,52 @@ class UserInterface:
             self.ui_elements.append(transform_element)
             element_y_pos += 60
 
+        # Transformed Title
+        element_y_pos += 10
+        transformed_title = UIVector('Transformed', pg.Rect(10, element_y_pos, 120, 20))
+        self.ui_elements.append(transformed_title)
 
-class Action(enum.Enum):
+        # Add Button
+        transformed_add_button = UIButton(pg.Rect(192, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
+                                          sign=UIButton.Sign.PLUS)
+        self.ui_elements.append(transformed_add_button)
+        element_y_pos += 30
+
+        # Transformed Objects
+        for transform in element_buffer.transformed:
+            rect = pg.Rect(20, element_y_pos, 240, 20)
+            transform_element = UITransformed(rect, transform)
+            self.ui_elements.append(transform_element)
+            element_y_pos += 60
+
+
+@enum.unique
+class ActionType(enum.Enum):
     ADD_TRANSFORM = 0
+    ADD_TRANSFORMED = 1
+    PICK_FOR_TRANSFORMED = 2
+
+
+class Action:
+    def __init__(self, action_type, data=None):
+        super().__init__()
+        self.action_type = action_type
+        self.data = data
 
 
 class UIElement:
     def __init__(self, rect):
         self.rect: pg.Rect = rect
 
-    def on_click(self):
-        return
+    def on_click(self, mouse_position) -> Optional[Action]:
+        return None
 
 
-class UIText(UIElement):
-    def __init__(self, text, rect, associated_element=None):
+class UIVector(UIElement):
+    def __init__(self, text, rect, associated_vector=None):
         super().__init__(rect)
         self.text: str = text
-        self.associated_element: Optional[Element] = associated_element
+        self.associated_vector: Optional[Element] = associated_vector
 
 
 class UIMatrix(UIElement):
@@ -93,17 +122,25 @@ class UIMatrix(UIElement):
         super().__init__(rect)
         self.associated_transform: Optional[Transform] = associated_transform
 
-    def on_click(self):
-        return
+
+class UITransformed(UIElement):
+    def __init__(self, rect, associated_transformed):
+        super().__init__(rect)
+        self.associated_transformed: Optional[Transformed] = associated_transformed
+
+    def on_click(self, mouse_position) -> Optional[Action]:
+        if self.rect.collidepoint(mouse_position):
+            return Action(ActionType.PICK_FOR_TRANSFORMED, {'transformed': self.associated_transformed})
 
 
 class UIButton(UIElement):
     class Sign(enum.Enum):
         PLUS = 0
 
-    def __init__(self, rect, sign=None):
+    def __init__(self, rect, action, sign=None):
         super().__init__(rect)
+        self.action = action
         self.sign = sign
 
-    def on_click(self) -> Action:
-        return Action.ADD_TRANSFORM
+    def on_click(self, mouse_position) -> Optional[Action]:
+        return Action(self.action)
