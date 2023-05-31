@@ -89,7 +89,7 @@ class UserInterface:
             rect = pg.Rect(20, element_y_pos, 240, 20)
             transform_element = UITransformed(rect, transform)
             self.ui_elements.append(transform_element)
-            element_y_pos += 60
+            element_y_pos += 25
 
 
 @enum.unique
