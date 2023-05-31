@@ -8,6 +8,9 @@ class ElementBuffer:
     def __init__(self):
         self.elements = []
 
+    def __iter__(self):
+        return iter(self.elements)
+
     def create_example_elements(self):
         self.elements.append(Vector(np.array([1, 1])))
 
@@ -39,3 +42,6 @@ class Vector(Element):
 
     def move_to(self, mouse_position: np.ndarray):
         self.coordinates = mouse_position.astype(dtype=float)
+
+    def __repr__(self):
+        return 'Vector [{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
