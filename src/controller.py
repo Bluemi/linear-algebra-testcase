@@ -3,6 +3,7 @@ import pygame as pg
 
 from coordinate_system import CoordinateSystem
 from elements import ElementBuffer, Element
+from user_interface import UserInterface
 
 
 class Controller:
@@ -13,7 +14,8 @@ class Controller:
         self.dragged_element: Element or None = None
         self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
 
-    def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
+    def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
+                     user_interface: UserInterface):
         if event.type == pg.QUIT:
             self.running = False
         elif event.type == pg.MOUSEWHEEL:
@@ -23,12 +25,16 @@ class Controller:
                 coordinate_system.zoom_in()
             self.update_needed = True
         elif event.type == pg.MOUSEBUTTONDOWN:
-            self.is_dragging = True
-            for element in element_buffer.elements:
-                if element.is_hovered(self.mouse_position, coordinate_system):
-                    self.dragged_element = element
-                    self.is_dragging = False
-                    break
+            if user_interface.menu_rect.collidepoint(self.mouse_position):
+                user_interface.toggle()
+                self.update_needed = True
+            else:
+                self.is_dragging = True
+                for element in element_buffer.elements:
+                    if element.is_hovered(self.mouse_position, coordinate_system):
+                        self.dragged_element = element
+                        self.is_dragging = False
+                        break
         elif event.type == pg.MOUSEBUTTONUP:
             self.is_dragging = False
             self.dragged_element = None

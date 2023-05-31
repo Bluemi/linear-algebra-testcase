@@ -7,6 +7,8 @@ class UserInterface:
         self.menu_rect = pg.Rect(10, 10, 40, 40)
         self.menu_image = self._create_menu_image()
 
+        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
+
     def _create_menu_image(self):
         menu_image = pg.Surface((self.menu_rect.width,  self.menu_rect.height))
         menu_image.fill(pg.Color(0, 0, 0))

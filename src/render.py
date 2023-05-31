@@ -97,13 +97,12 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 def draw_user_interface(screen: Surface, user_interface: UserInterface, element_buffer: ElementBuffer,
                         controller: Controller):
     if user_interface.showing:
-        pass
-    else:
-        # *([40] * 3)
-        alpha = 255 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
-        user_interface.menu_image.set_alpha(alpha)
-        screen.blit(user_interface.menu_image, user_interface.menu_rect)
-        # pg.draw.rect(screen, Color(40, 40, 40, 50), user_interface.menu_rect)
+        pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
+
+    # draw menu rect
+    alpha = 255 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
+    user_interface.menu_image.set_alpha(alpha)
+    screen.blit(user_interface.menu_image, user_interface.menu_rect)
 
 
 def draw_elements(
