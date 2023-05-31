@@ -46,8 +46,12 @@ class Controller:
                             if self.selected_transformed:
                                 if isinstance(ui_element, UIVector):
                                     self.selected_transformed.vector = ui_element.associated_vector
+                                    self.selected_transformed = None
+                                    self.update_needed = True
                                 elif isinstance(ui_element, UIMatrix):
                                     self.selected_transformed.transform = ui_element.associated_transform
+                                    self.selected_transformed = None
+                                    self.update_needed = True
                             # handle on click
                             action = ui_element.on_click(self.mouse_position)
                             if action is not None:
