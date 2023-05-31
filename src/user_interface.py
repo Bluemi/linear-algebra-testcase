@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 import pygame as pg
+
+from elements import Element
 
 
 class UserInterface:
@@ -46,7 +48,7 @@ class UserInterface:
 
 
 class UIElement:
-    def __init__(self, text, rect, associated_element = None):
-        self.text = text
-        self.rect = rect
-        self.associated_element = associated_element
+    def __init__(self, text, rect, associated_element=None):
+        self.text: str = text
+        self.rect: pg.Rect = rect
+        self.associated_element: Optional[Element] = associated_element
