@@ -5,7 +5,7 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem
 from elements import ElementBuffer, Vector
-
+from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -13,11 +13,12 @@ TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
 
 def render(
     screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font,
-    controller: Controller
+    controller: Controller, user_interface: UserInterface
 ):
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
     draw_elements(screen, coordinate_system, element_buffer, controller)
+    draw_user_interface(screen, user_interface, element_buffer, controller)
 
 
 def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem, render_font):
@@ -91,6 +92,18 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
                 pos = coordinate_system.transform(np.array([0, y]))
                 pos += 10
                 screen.blit(font, pos)
+
+
+def draw_user_interface(screen: Surface, user_interface: UserInterface, element_buffer: ElementBuffer,
+                        controller: Controller):
+    if user_interface.showing:
+        pass
+    else:
+        # *([40] * 3)
+        alpha = 255 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
+        user_interface.menu_image.set_alpha(alpha)
+        screen.blit(user_interface.menu_image, user_interface.menu_rect)
+        # pg.draw.rect(screen, Color(40, 40, 40, 50), user_interface.menu_rect)
 
 
 def draw_elements(
