@@ -39,8 +39,9 @@ class Vector(Element):
 
 
 class UnitCircle(Element):
-    def __init__(self, num_points=20):
+    def __init__(self, num_points=40):
         super().__init__()
+        self.num_points = num_points
         space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
         self.coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
 
@@ -50,7 +51,8 @@ class UnitCircle(Element):
         return np.any(diff < 100)
 
     def move_to(self, mouse_position: np.ndarray):
-        pass
+        space = np.linspace(0, np.pi * 2, num=self.num_points, endpoint=False)
+        self.coordinates = np.stack([np.cos(space) * mouse_position[0], np.sin(space) * mouse_position[1]], axis=1)
 
     def __repr__(self):
         return 'UnitCircle'

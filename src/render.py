@@ -195,5 +195,4 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                 elif isinstance(element.element, UnitCircle):
                     transformed_vec = coordinate_system.transform(new_vec)
                     for point in transformed_vec:
-                        # pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)
                         pg.draw.circle(screen, pg.Color(200, 120, 120), point, 3)
