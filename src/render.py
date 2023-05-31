@@ -4,8 +4,8 @@ from pygame import Surface, Color
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from elements import ElementBuffer, Vector, Transformed
-from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed, UIText
+from elements import ElementBuffer, Vector, Transformed, UnitCircle
+from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed, UIText, UIUnitCircle
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -111,6 +111,12 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                     brightness = 220
                 font = render_font.render('Vector ' + repr(ui_element.associated_vector), True, pg.Color(brightness, brightness, brightness))
                 screen.blit(font, ui_element.rect)
+            if isinstance(ui_element, UIUnitCircle):
+                brightness = 180
+                if ui_element.associated_unit_circle and ui_element.associated_unit_circle.hovered:
+                    brightness = 220
+                font = render_font.render('UnitCircle', True, pg.Color(brightness, brightness, brightness))
+                screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIButton):
                 brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
                 pg.draw.rect(screen, Color(brightness, brightness, brightness), ui_element.rect, border_radius=4)
@@ -153,7 +159,7 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220
                 text = 'Transformed {} * {}'.format(
-                    ui_element.associated_transformed.transform, ui_element.associated_transformed.vector
+                    ui_element.associated_transformed.transform, ui_element.associated_transformed.element
                 )
                 font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                 screen.blit(font, ui_element.rect)
@@ -173,10 +179,21 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
             width = 3 if element.hovered else 1
             pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=width)
 
+        if isinstance(element, UnitCircle):
+            transformed_vec = coordinate_system.transform(element.coordinates)
+            width = 4 if element.hovered else 3
+            for point in transformed_vec:
+                pg.draw.circle(screen, pg.Color(120, 200, 120), point, width)
+
     for element in element_buffer.transformed:
         if isinstance(element, Transformed):
             new_vec = element.get_position()
             if new_vec is not None:
-                transformed_vec = coordinate_system.transform(new_vec)
-                # width = 3 if element.hovered else 1
-                pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)
+                if isinstance(element.element, Vector):
+                    transformed_vec = coordinate_system.transform(new_vec)
+                    pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)
+                elif isinstance(element.element, UnitCircle):
+                    transformed_vec = coordinate_system.transform(new_vec)
+                    for point in transformed_vec:
+                        # pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)
+                        pg.draw.circle(screen, pg.Color(200, 120, 120), point, 3)

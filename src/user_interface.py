@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import pygame as pg
 
-from elements import Element, Transform, ElementBuffer, Transformed
+from elements import Element, Transform, ElementBuffer, Transformed, Vector, UnitCircle
 
 
 class UserInterface:
@@ -46,13 +46,22 @@ class UserInterface:
         vector_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_VECTOR,
                                      sign=UIButton.Sign.PLUS)
         self.ui_elements.append(vector_add_button)
+
+        unit_circle_add_button = UIButton(pg.Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_UNIT_CIRCLE,
+                                          sign=UIButton.Sign.PLUS)
+        self.ui_elements.append(unit_circle_add_button)
         element_y_pos += 25
 
         # Objects
         for element in element_buffer:
-            rect = pg.Rect(20, element_y_pos, 180, 20)
-            ui_element = UIVector(rect, element)
-            self.ui_elements.append(ui_element)
+            if isinstance(element, Vector):
+                rect = pg.Rect(20, element_y_pos, 180, 20)
+                ui_element = UIVector(rect, element)
+                self.ui_elements.append(ui_element)
+            elif isinstance(element, UnitCircle):
+                rect = pg.Rect(20, element_y_pos, 180, 20)
+                ui_element = UIUnitCircle(rect, element)
+                self.ui_elements.append(ui_element)
             element_y_pos += 25
 
         # Transforms Title
@@ -95,10 +104,11 @@ class UserInterface:
 @enum.unique
 class ActionType(enum.Enum):
     ADD_VECTOR = 0
-    ADD_TRANSFORM = 1
-    ADD_TRANSFORMED = 2
-    PICK_FOR_TRANSFORMED = 3
-    PICK_TRANSFORM_VAL = 4
+    ADD_UNIT_CIRCLE = 1
+    ADD_TRANSFORM = 2
+    ADD_TRANSFORMED = 3
+    PICK_FOR_TRANSFORMED = 4
+    PICK_TRANSFORM_VAL = 5
 
 
 class Action:
@@ -125,7 +135,13 @@ class UIText(UIElement):
 class UIVector(UIElement):
     def __init__(self, rect, associated_vector=None):
         super().__init__(rect)
-        self.associated_vector: Optional[Element] = associated_vector
+        self.associated_vector: Optional[Vector] = associated_vector
+
+
+class UIUnitCircle(UIElement):
+    def __init__(self, rect, associated_unit_circle=None):
+        super().__init__(rect)
+        self.associated_unit_circle: Optional[UnitCircle] = associated_unit_circle
 
 
 class UIMatrix(UIElement):

@@ -1,4 +1,4 @@
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 
 import numpy as np
 import abc
@@ -38,6 +38,24 @@ class Vector(Element):
         return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
 
 
+class UnitCircle(Element):
+    def __init__(self, num_points=20):
+        super().__init__()
+        space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
+        self.coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
+
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        pos = coordinate_system.transform(self.coordinates)
+        diff = np.sum((mouse_position - pos)**2, axis=1)
+        return np.any(diff < 100)
+
+    def move_to(self, mouse_position: np.ndarray):
+        pass
+
+    def __repr__(self):
+        return 'UnitCircle'
+
+
 class Transform:
     def __init__(self):
         self.matrix = np.eye(2)
@@ -48,13 +66,13 @@ class Transform:
 
 
 class Transformed:
-    def __init__(self, vector: Optional[Vector], transform: Optional[Transform]):
-        self.vector = vector
+    def __init__(self, element: Union[None, Vector, UnitCircle], transform: Optional[Transform]):
+        self.element = element
         self.transform = transform
 
     def get_position(self):
-        if self.vector is not None and self.transform is not None:
-            return self.transform.matrix @ self.vector.coordinates
+        if self.element is not None and self.transform is not None:
+            return (self.transform.matrix @ self.element.coordinates.T).T
         return None
 
 

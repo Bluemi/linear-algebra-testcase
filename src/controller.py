@@ -4,8 +4,8 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element, Transform, Transformed, Vector
-from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix
+from elements import ElementBuffer, Element, Transform, Transformed, Vector, UnitCircle
+from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix, UIUnitCircle
 
 
 class Controller:
@@ -46,7 +46,11 @@ class Controller:
                             # handle select transform
                             if self.selected_transformed:
                                 if isinstance(ui_element, UIVector):
-                                    self.selected_transformed.vector = ui_element.associated_vector
+                                    self.selected_transformed.element = ui_element.associated_vector
+                                    self.selected_transformed = None
+                                    self.update_needed = True
+                                elif isinstance(ui_element, UIUnitCircle):
+                                    self.selected_transformed.element = ui_element.associated_unit_circle
                                     self.selected_transformed = None
                                     self.update_needed = True
                                 elif isinstance(ui_element, UIMatrix):
@@ -111,11 +115,18 @@ class Controller:
                     if ui_element.associated_vector:
                         if ui_element.rect.collidepoint(self.mouse_position):
                             ui_element.associated_vector.hovered = True
+                if isinstance(ui_element, UIUnitCircle):
+                    if ui_element.associated_unit_circle:
+                        if ui_element.rect.collidepoint(self.mouse_position):
+                            ui_element.associated_unit_circle.hovered = True
 
     def handle_actions(self, element_buffer: ElementBuffer):
         for action in self.actions:
             if action.action_type == ActionType.ADD_VECTOR:
                 element_buffer.elements.append(Vector(np.array([1, 0])))
+                self.update_needed = True
+            elif action.action_type == ActionType.ADD_UNIT_CIRCLE:
+                element_buffer.elements.append(UnitCircle())
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_TRANSFORM:
                 element_buffer.transforms.append(Transform())
