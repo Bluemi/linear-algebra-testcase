@@ -43,4 +43,6 @@ If you create a custom transformed and click on it, a text window appears. Here 
 You can use all object names listed above and numpy functions (accessible via `np`). Objects from above will be presented as [numpy-ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html).
 
 **Example:** Lets say you have a vector `v1` and a 2d transformation matrix `T1`. You could write `T1 @ v1` to apply the transformation matrix on your vector and render the result.
-The same works for unit circles (replace `v1` with `u1`). As applying a 3d transformation matrix on a 2d vector is a bit complicated, you can use the special function `mm()`(matrix-multiplication): `mm(T1, v1)`. This will automatically convert your vector `(x, y)` to a new vector `(x, y, 1)` apply the transformation matrix and then cut the last vector dimension again, to regain 2 dimensions.
+The same works for unit circles (replace `v1` with `u1`).
+
+As applying a 3d transformation matrix on a 2d vector is a bit complicated, you can use the special function `mm()`(matrix-multiplication): `mm(T1, v1)`.
