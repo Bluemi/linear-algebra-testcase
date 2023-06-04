@@ -165,7 +165,12 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
                 elif isinstance(ui_element.associated_transformed, CustomTransformed):
-                    text = ui_element.associated_transformed.definition or 'CustomTransformed'
+                    if ui_element.associated_transformed.definition:
+                        text = ui_element.associated_transformed.definition
+                        if ui_element.associated_transformed.error:
+                            text += ' ' + ui_element.associated_transformed.error
+                    else:
+                        text = '<CustomTransformed>'
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
 
@@ -186,7 +191,7 @@ def draw_text_input(screen: Surface, controller: Controller, render_font):
     elem: CustomTransformed = controller.get_definition_for.associated_transformed
 
     font = render_font.render(elem.definition, True, pg.Color(220, 220, 220))
-    screen.blit(font, small_rect.move(3, 10))
+    screen.blit(font, small_rect.move(3, 12))
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
@@ -215,3 +220,18 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     transformed_vec = coordinate_system.transform(new_vec)
                     for point in transformed_vec:
                         pg.draw.circle(screen, pg.Color(200, 120, 120), point, 3)
+        elif isinstance(element, CustomTransformed):
+            if element.compiled_definition:
+                result = None
+                try:
+                    result = eval(element.compiled_definition, {}, {'np': np})
+                except Exception as e:
+                    element.error = repr(e)
+                if not isinstance(result, np.ndarray):
+                    element.error = 'result is not numpy array'
+                if result.shape == (2,):
+                    result = np.expand_dims(result, 0)
+                transformed_vecs = coordinate_system.transform(result)
+                # width = 3 if element.hovered else 1
+                for transformed_vec in transformed_vecs:
+                    pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=2)

@@ -101,11 +101,11 @@ class Controller:
                 else:
                     custom_transformed: CustomTransformed = self.get_definition_for.associated_transformed
                     if event.key == 8:
-                        custom_transformed.definition = custom_transformed.definition[:-1]
+                        custom_transformed.set_definition(custom_transformed.definition[:-1])
                     elif event.key == 127:
-                        custom_transformed.definition = ''
+                        custom_transformed.set_definition('')
                     elif event.unicode:
-                        custom_transformed.definition += event.unicode
+                        custom_transformed.set_definition(custom_transformed.definition + event.unicode)
                     self.update_needed = True
             else:
                 if event.unicode == 'n':

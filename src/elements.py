@@ -92,6 +92,11 @@ class CustomTransformed:
             self.compiled_definition = None
             self.error = repr(e)
 
+    def set_definition(self, definition):
+        self.definition = definition
+        self.error = None
+        self.compiled_definition = None
+
 
 class ElementBuffer:
     def __init__(self):
