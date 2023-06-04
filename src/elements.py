@@ -62,28 +62,30 @@ class UnitCircle(Element):
         space = np.linspace(0, np.pi * 2, num=self.num_points, endpoint=False)
         self.coordinates = np.stack([np.cos(space) * mouse_position[0], np.sin(space) * mouse_position[1]], axis=1)
 
-    def __repr__(self):
-        return 'UnitCircle'
-
     def get_array(self):
         return self.coordinates.T
 
 
-class Transform:
+class Transform2D:
     def __init__(self, name: str):
         self.name = name
         self.matrix = np.eye(2)
 
-    def __repr__(self):
-        # return '[[{:.2f}, {:.2f}], [{:.2f}, {:.2f}]]'.format(*self.matrix.flatten())
-        return 'Matrix'
+    def get_array(self):
+        return self.matrix
+
+
+class Transform3D:
+    def __init__(self, name: str):
+        self.name = name
+        self.matrix = np.eye(3)
 
     def get_array(self):
         return self.matrix
 
 
 class Transformed:
-    def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform]):
+    def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform2D]):
         self.name = name
         self.element = element
         self.transform = transform

@@ -7,7 +7,8 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed
-from user_interface import UserInterface, UIVector, UIButton, UITransform, UITransformed, UIText, UIUnitCircle
+from user_interface import UserInterface, UIVector, UIButton, UITransform2D, UITransformed, UIText, UIUnitCircle, \
+    UITransform3D
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -103,7 +104,6 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
 def draw_user_interface(screen: Surface, user_interface: UserInterface, controller: Controller,
                         render_font: pg.font.Font):
-    # user_interface.recreate_ui_elements(element_buffer)
     if user_interface.showing:
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
@@ -138,7 +138,7 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                     pg.draw.rect(
                         screen, Color(brightness-70, brightness-70, brightness-70), vertical_rect, border_radius=2
                     )
-            if isinstance(ui_element, UITransform):
+            if isinstance(ui_element, UITransform2D) or isinstance(ui_element, UITransform3D):
                 brightness = 180
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220
@@ -147,24 +147,36 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 font = render_font.render(
                     ui_element.associated_transform.name, True, pg.Color(brightness, brightness, brightness)
                 )
-                screen.blit(font, ui_element.rect.move(0, 15))
+                label_y_distance = (ui_element.rect.height - 20) // 2
+                screen.blit(font, ui_element.rect.move(0, label_y_distance))
 
                 str_format = '{:.2f}'
+                matrix = ui_element.associated_transform.matrix
+                for y in range(matrix.shape[0]):
+                    for x in range(matrix.shape[1]):
+                        font = render_font.render(
+                            str_format.format(ui_element.associated_transform.matrix[y, x]), True, color
+                        )
+                        screen.blit(font, ui_element.rect.move(40 + 50 * x, 3 + 24 * y))
 
-                font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 0]), True, color)
-                screen.blit(font, ui_element.rect.move(80, 3))
+                # do by hand  TODO remove
+                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 0]), True, color)
+                # screen.blit(font, ui_element.rect.move(80, 3))
 
-                font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 1]), True, color)
-                screen.blit(font, ui_element.rect.move(130, 3))
+                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 1]), True, color)
+                # screen.blit(font, ui_element.rect.move(130, 3))
 
-                font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 0]), True, color)
-                screen.blit(font, ui_element.rect.move(80, 27))
+                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 0]), True, color)
+                # screen.blit(font, ui_element.rect.move(80, 27))
 
-                font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 1]), True, color)
-                screen.blit(font, ui_element.rect.move(130, 27))
+                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 1]), True, color)
+                # screen.blit(font, ui_element.rect.move(130, 27))
 
-                pg.draw.line(screen, color, ui_element.rect.move(70, 0).topleft, ui_element.rect.move(70, 50).topleft, width=2)
-                pg.draw.line(screen, color, ui_element.rect.move(185, 0).topleft, ui_element.rect.move(185, 50).topleft, width=2)
+                pg.draw.line(screen, color, ui_element.rect.move(30, 0).topleft,
+                             ui_element.rect.move(30, ui_element.rect.height).topleft, width=2)
+                x_pos = 145 if isinstance(ui_element, UITransform2D) else 190
+                pg.draw.line(screen, color, ui_element.rect.move(x_pos, 0).topleft,
+                             ui_element.rect.move(x_pos, ui_element.rect.height).topleft, width=2)
 
             if isinstance(ui_element, UITransformed):
                 brightness = 180

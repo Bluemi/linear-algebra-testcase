@@ -4,8 +4,9 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element, Transform, Transformed, Vector, UnitCircle, CustomTransformed
-from user_interface import UserInterface, ActionType, UIVector, Action, UITransform, UIUnitCircle, UITransformed
+from elements import ElementBuffer, Element, Transform2D, Transformed, Vector, UnitCircle, CustomTransformed, \
+    Transform3D
+from user_interface import UserInterface, ActionType, UIVector, UITransform2D, UIUnitCircle, UITransformed
 
 
 class Controller:
@@ -54,7 +55,7 @@ class Controller:
                                     self.selected_transformed.element = ui_element.associated_unit_circle
                                     self.selected_transformed = None
                                     self.update_needed = True
-                                elif isinstance(ui_element, UITransform):
+                                elif isinstance(ui_element, UITransform2D):
                                     self.selected_transformed.transform = ui_element.associated_transform
                                     self.selected_transformed = None
                                     self.update_needed = True
@@ -115,7 +116,7 @@ class Controller:
                                 element_buffer.elements.remove(ui_element.associated_vector)
                             elif isinstance(ui_element, UIUnitCircle):
                                 element_buffer.elements.remove(ui_element.associated_unit_circle)
-                            elif isinstance(ui_element, UITransform):
+                            elif isinstance(ui_element, UITransform2D):
                                 element_buffer.transforms.remove(ui_element.associated_transform)
                             elif isinstance(ui_element, UITransformed):
                                 element_buffer.transformed.remove(ui_element.associated_transformed)
@@ -154,24 +155,20 @@ class Controller:
             num_elements = len(element_buffer.elements) + 1
             num_transformed = len(element_buffer.transformed) + 1
             num_transforms = len(element_buffer.transforms) + 1
+            self.update_needed = True
             if action.action_type == ActionType.ADD_VECTOR:
                 element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1, 0])))
-                self.update_needed = True
             elif action.action_type == ActionType.ADD_UNIT_CIRCLE:
                 element_buffer.elements.append(UnitCircle('u{}'.format(num_elements)))
-                self.update_needed = True
-            elif action.action_type == ActionType.ADD_TRANSFORM:
-                element_buffer.transforms.append(Transform('T{}'.format(num_transforms)))
-                self.update_needed = True
+            elif action.action_type == ActionType.ADD_TRANSFORM2D:
+                element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
+            elif action.action_type == ActionType.ADD_TRANSFORM3D:
+                element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
             elif action.action_type == ActionType.ADD_TRANSFORMED:
                 element_buffer.transformed.append(Transformed('t{}'.format(num_transformed), None, None))
-                self.update_needed = True
             elif action.action_type == ActionType.ADD_CUSTOM_TRANSFORMED:
                 element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed)))
-                self.update_needed = True
             elif action.action_type == ActionType.PICK_FOR_TRANSFORMED:
                 self.selected_transformed = action.data['transformed']
-                self.update_needed = True
             elif action.action_type == ActionType.PICK_TRANSFORM_VAL:
                 self.selected_transform = action.data
-                self.update_needed = True

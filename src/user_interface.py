@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 import pygame as pg
 
-from elements import Transform, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed
+from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D
 
 
 class UserInterface:
@@ -70,17 +70,31 @@ class UserInterface:
         self.ui_elements.append(transforms_title)
 
         # Add Button
-        transform_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM,
-                                        sign=UIButton.Sign.PLUS)
-        self.ui_elements.append(transform_add_button)
+        transform2d_add_button = UIButton(
+            pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM2D, sign=UIButton.Sign.PLUS
+        )
+        self.ui_elements.append(transform2d_add_button)
+
+        transform3d_add_button = UIButton(
+            pg.Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM3D, sign=UIButton.Sign.PLUS
+        )
+        self.ui_elements.append(transform3d_add_button)
+
         element_y_pos += 30
 
         # Transform Objects
         for transform in element_buffer.transforms:
-            rect = pg.Rect(20, element_y_pos, 180, 50)
-            transform_element = UITransform(rect, transform)
+            height = 50 if isinstance(transform, Transform2D) else 70
+            rect = pg.Rect(20, element_y_pos, 180, height)
+
+            if isinstance(transform, Transform2D):
+                transform_element = UITransform2D(rect, transform)
+            elif isinstance(transform, Transform3D):
+                transform_element = UITransform3D(rect, transform)
+            else:
+                raise TypeError('transform neither Transform2D nor Transform3D')
             self.ui_elements.append(transform_element)
-            element_y_pos += 60
+            element_y_pos += height + 10
 
         # Transformed Title
         element_y_pos += 10
@@ -110,11 +124,12 @@ class UserInterface:
 class ActionType(enum.Enum):
     ADD_VECTOR = 0
     ADD_UNIT_CIRCLE = 1
-    ADD_TRANSFORM = 2
-    ADD_TRANSFORMED = 3
-    ADD_CUSTOM_TRANSFORMED = 4
-    PICK_FOR_TRANSFORMED = 5
-    PICK_TRANSFORM_VAL = 6
+    ADD_TRANSFORM2D = 2
+    ADD_TRANSFORM3D = 3
+    ADD_TRANSFORMED = 4
+    ADD_CUSTOM_TRANSFORMED = 5
+    PICK_FOR_TRANSFORMED = 6
+    PICK_TRANSFORM_VAL = 7
 
 
 class Action:
@@ -150,27 +165,44 @@ class UIUnitCircle(UIElement):
         self.associated_unit_circle: Optional[UnitCircle] = associated_unit_circle
 
 
-class UITransform(UIElement):
+class UITransform2D(UIElement):
     def __init__(self, rect, associated_transform):
         super().__init__(rect)
-        self.associated_transform: Optional[Transform] = associated_transform
+        self.associated_transform: Optional[Transform2D] = associated_transform
 
     def on_click(self, mouse_position) -> Optional[Action]:
         small_rect = self.rect.copy()
         small_rect.width = 30
         small_rect.height = 20
 
-        if small_rect.move(80, 3).collidepoint(mouse_position):
-            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (0, 0), 'transform': self.associated_transform})
+        matrix = self.associated_transform.matrix
+        for y in range(matrix.shape[0]):
+            for x in range(matrix.shape[1]):
+                if small_rect.move(40 + 50*x, 3 + 24 * y).collidepoint(mouse_position):
+                    return Action(
+                        ActionType.PICK_TRANSFORM_VAL, data={'index': (y, x), 'transform': self.associated_transform}
+                    )
 
-        if small_rect.move(130, 3).collidepoint(mouse_position):
-            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (0, 1), 'transform': self.associated_transform})
+        return None
 
-        if small_rect.move(80, 27).collidepoint(mouse_position):
-            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (1, 0), 'transform': self.associated_transform})
 
-        if small_rect.move(130, 27).collidepoint(mouse_position):
-            return Action(ActionType.PICK_TRANSFORM_VAL, data={'index': (1, 1), 'transform': self.associated_transform})
+class UITransform3D(UIElement):
+    def __init__(self, rect, associated_transform):
+        super().__init__(rect)
+        self.associated_transform: Optional[Transform3D] = associated_transform
+
+    def on_click(self, mouse_position) -> Optional[Action]:
+        small_rect = self.rect.copy()
+        small_rect.width = 30
+        small_rect.height = 20
+
+        matrix = self.associated_transform.matrix
+        for y in range(matrix.shape[0]):
+            for x in range(matrix.shape[1]):
+                if small_rect.move(40 + 50*x, 3 + 24 * y).collidepoint(mouse_position):
+                    return Action(
+                        ActionType.PICK_TRANSFORM_VAL, data={'index': (y, x), 'transform': self.associated_transform}
+                    )
 
         return None
 
