@@ -6,7 +6,7 @@ from pygame import Surface, Color
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_f
-from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed
+from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed, RenderKind
 from user_interface import UserInterface, UIVector, UIButton, UITransform2D, UITransformed, UIText, UIUnitCircle, \
     UITransform3D
 
@@ -215,13 +215,19 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
         if isinstance(element, Vector):
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 3 if element.hovered else 1
-            pg.draw.line(screen, GREEN, zero_point, transformed_vec, width=width)
+            if element.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, GREEN, transformed_vec, width)
+            elif element.render_kind == RenderKind.LINE:
+                pg.draw.line(screen, GREEN, zero_point, transformed_vec, width=width)
 
         if isinstance(element, UnitCircle):
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 4 if element.hovered else 3
             for point in transformed_vec:
-                pg.draw.circle(screen, GREEN, point, width)
+                if element.render_kind == RenderKind.POINT:
+                    pg.draw.circle(screen, GREEN, point, width)
+                elif element.render_kind == RenderKind.LINE:
+                    pg.draw.line(screen, GREEN, zero_point, point, width=1)
 
     for element in element_buffer.transformed:
         if isinstance(element, Transformed):
@@ -229,11 +235,17 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
             if new_vec is not None:
                 if isinstance(element.element, Vector):
                     transformed_vec = coordinate_system.transform(new_vec)
-                    pg.draw.line(screen, RED, zero_point, transformed_vec, width=1)
+                    if element.render_kind == RenderKind.POINT:
+                        pg.draw.circle(screen, RED, transformed_vec, 3)
+                    elif element.render_kind == RenderKind.LINE:
+                        pg.draw.line(screen, RED, zero_point, transformed_vec, width=1)
                 elif isinstance(element.element, UnitCircle):
                     transformed_vec = coordinate_system.transform(new_vec)
                     for point in transformed_vec:
-                        pg.draw.circle(screen, RED, point, 3)
+                        if element.render_kind == RenderKind.POINT:
+                            pg.draw.circle(screen, RED, point, 3)
+                        elif element.render_kind == RenderKind.LINE:
+                            pg.draw.line(screen, RED, zero_point, point, width=1)
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
                 # build eval locals
@@ -264,8 +276,11 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     if result.shape[-1] == 2 and len(result.shape) == 2:
                         transformed_vecs = coordinate_system.transform(result)
                         # width = 3 if element.hovered else 1
-                        for transformed_vec in transformed_vecs:
-                            pg.draw.line(screen, RED, zero_point, transformed_vec, width=2)
+                        for point in transformed_vecs:
+                            if element.render_kind == RenderKind.POINT:
+                                pg.draw.circle(screen, RED, point, 3)
+                            elif element.render_kind == RenderKind.LINE:
+                                pg.draw.line(screen, RED, zero_point, point, width=1)
                     else:
                         element.error = 'Invalid result shape: {}'.format(result.shape)
                 elif result is not None:

@@ -5,8 +5,9 @@ import pygame as pg
 
 from coordinate_system import CoordinateSystem
 from elements import ElementBuffer, Element, Transform2D, Transformed, Vector, UnitCircle, CustomTransformed, \
-    Transform3D
-from user_interface import UserInterface, ActionType, UIVector, UITransform2D, UIUnitCircle, UITransformed
+    Transform3D, RenderKind
+from user_interface import UserInterface, ActionType, UIVector, UITransform2D, UIUnitCircle, UITransformed, \
+    UITransform3D
 
 
 class Controller:
@@ -49,10 +50,12 @@ class Controller:
                             if self.selected_transformed:
                                 if isinstance(ui_element, UIVector):
                                     self.selected_transformed.element = ui_element.associated_vector
+                                    self.selected_transformed.render_kind = ui_element.associated_vector.render_kind
                                     self.selected_transformed = None
                                     self.update_needed = True
                                 elif isinstance(ui_element, UIUnitCircle):
                                     self.selected_transformed.element = ui_element.associated_unit_circle
+                                    self.selected_transformed.render_kind = ui_element.associated_unit_circle.render_kind
                                     self.selected_transformed = None
                                     self.update_needed = True
                                 elif isinstance(ui_element, UITransform2D):
@@ -95,7 +98,6 @@ class Controller:
         elif event.type == pg.KEYUP:
             if self.get_definition_for is not None:
                 if event.key == 27:
-                    # self.running = False
                     self.get_definition_for.associated_transformed.compile_definition()
                     self.get_definition_for = None
                     self.update_needed = True
@@ -116,12 +118,16 @@ class Controller:
                                 element_buffer.elements.remove(ui_element.associated_vector)
                             elif isinstance(ui_element, UIUnitCircle):
                                 element_buffer.elements.remove(ui_element.associated_unit_circle)
-                            elif isinstance(ui_element, UITransform2D):
+                            elif isinstance(ui_element, UITransform2D) or isinstance(ui_element, UITransform3D):
                                 element_buffer.transforms.remove(ui_element.associated_transform)
                             elif isinstance(ui_element, UITransformed):
                                 element_buffer.transformed.remove(ui_element.associated_transformed)
                     self.update_needed = True
-
+                elif event.key == 114:  # r for change render kind
+                    for ui_element in user_interface.ui_elements:
+                        if ui_element.rect.collidepoint(self.mouse_position):
+                            ui_element.toggle_render_kind()
+                            self.update_needed = True
         else:
             # print(event)
             pass
@@ -165,9 +171,11 @@ class Controller:
             elif action.action_type == ActionType.ADD_TRANSFORM3D:
                 element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
             elif action.action_type == ActionType.ADD_TRANSFORMED:
-                element_buffer.transformed.append(Transformed('t{}'.format(num_transformed), None, None))
+                element_buffer.transformed.append(
+                    Transformed('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
+                )
             elif action.action_type == ActionType.ADD_CUSTOM_TRANSFORMED:
-                element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed)))
+                element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE))
             elif action.action_type == ActionType.PICK_FOR_TRANSFORMED:
                 self.selected_transformed = action.data['transformed']
             elif action.action_type == ActionType.PICK_TRANSFORM_VAL:

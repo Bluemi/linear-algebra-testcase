@@ -1,3 +1,4 @@
+import enum
 from typing import Iterator, Optional, Union
 
 import numpy as np
@@ -6,12 +7,21 @@ import abc
 from coordinate_system import CoordinateSystem
 
 
+class RenderKind(enum.Enum):
+    LINE = enum.auto()
+    POINT = enum.auto()
+
+    def toggle(self):
+        return RenderKind(self.value % len(RenderKind) + 1)
+
+
 class Element:
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, render_kind: RenderKind):
         self.name = name
         self.hovered = False
+        self.render_kind = render_kind
 
     @abc.abstractmethod
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
@@ -27,8 +37,8 @@ class Element:
 
 
 class Vector(Element):
-    def __init__(self, name: str, coordinates: np.ndarray):
-        super().__init__(name)
+    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
+        super().__init__(name, render_kind)
         self.coordinates = coordinates
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
@@ -47,8 +57,8 @@ class Vector(Element):
 
 
 class UnitCircle(Element):
-    def __init__(self, name: str, num_points=40):
-        super().__init__(name)
+    def __init__(self, name: str, render_kind: RenderKind = RenderKind.POINT, num_points=40):
+        super().__init__(name, render_kind)
         self.num_points = num_points
         space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
         self.coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
@@ -85,10 +95,12 @@ class Transform3D:
 
 
 class Transformed:
-    def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform2D]):
+    def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform2D],
+                 render_kind: RenderKind):
         self.name = name
         self.element = element
         self.transform = transform
+        self.render_kind = render_kind
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
@@ -100,8 +112,9 @@ class Transformed:
 
 
 class CustomTransformed:
-    def __init__(self, name: str):
+    def __init__(self, name: str, render_kind: RenderKind):
         self.name = name
+        self.render_kind = render_kind
         self.definition = ""
         self.compiled_definition = None
         self.error = None

@@ -146,6 +146,9 @@ class UIElement:
     def on_click(self, mouse_position) -> Optional[Action]:
         return None
 
+    def toggle_render_kind(self):
+        pass
+
 
 class UIText(UIElement):
     def __init__(self, rect, text):
@@ -158,11 +161,17 @@ class UIVector(UIElement):
         super().__init__(rect)
         self.associated_vector: Optional[Vector] = associated_vector
 
+    def toggle_render_kind(self):
+        self.associated_vector.render_kind = self.associated_vector.render_kind.toggle()
+
 
 class UIUnitCircle(UIElement):
     def __init__(self, rect, associated_unit_circle=None):
         super().__init__(rect)
         self.associated_unit_circle: Optional[UnitCircle] = associated_unit_circle
+
+    def toggle_render_kind(self):
+        self.associated_unit_circle.render_kind = self.associated_unit_circle.render_kind.toggle()
 
 
 class UITransform2D(UIElement):
@@ -216,6 +225,9 @@ class UITransformed(UIElement):
         if self.rect.collidepoint(mouse_position):
             if isinstance(self.associated_transformed, Transformed):
                 return Action(ActionType.PICK_FOR_TRANSFORMED, {'transformed': self.associated_transformed})
+
+    def toggle_render_kind(self):
+        self.associated_transformed.render_kind = self.associated_transformed.render_kind.toggle()
 
 
 class UIButton(UIElement):
