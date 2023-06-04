@@ -5,7 +5,7 @@ import pygame as pg
 from pygame import Surface, Color
 
 from controller import Controller
-from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
+from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_f
 from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed
 from user_interface import UserInterface, UIVector, UIButton, UITransform2D, UITransformed, UIText, UIUnitCircle, \
     UITransform3D
@@ -159,19 +159,6 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                         )
                         screen.blit(font, ui_element.rect.move(40 + 50 * x, 3 + 24 * y))
 
-                # do by hand  TODO remove
-                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 0]), True, color)
-                # screen.blit(font, ui_element.rect.move(80, 3))
-
-                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[0, 1]), True, color)
-                # screen.blit(font, ui_element.rect.move(130, 3))
-
-                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 0]), True, color)
-                # screen.blit(font, ui_element.rect.move(80, 27))
-
-                # font = render_font.render(str_format.format(ui_element.associated_transform.matrix[1, 1]), True, color)
-                # screen.blit(font, ui_element.rect.move(130, 27))
-
                 pg.draw.line(screen, color, ui_element.rect.move(30, 0).topleft,
                              ui_element.rect.move(30, ui_element.rect.height).topleft, width=2)
                 x_pos = 145 if isinstance(ui_element, UITransform2D) else 190
@@ -250,7 +237,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
                 # build eval locals
-                eval_locals = {'np': np}
+                eval_locals = {'np': np, 'mm': transform_helper}
                 for e in element_buffer.elements:
                     eval_locals[e.name] = e.get_array()
                 for t in element_buffer.transforms:
@@ -283,3 +270,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                         element.error = 'Invalid result shape: {}'.format(result.shape)
                 elif result is not None:
                     element.error = 'result is not numpy array'
+
+
+def transform_helper(transformation_matrix, mat):
+    return transform_f(transformation_matrix.T, mat.T).T
