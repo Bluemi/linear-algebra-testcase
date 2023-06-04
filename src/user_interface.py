@@ -78,7 +78,7 @@ class UserInterface:
         # Transform Objects
         for transform in element_buffer.transforms:
             rect = pg.Rect(20, element_y_pos, 180, 50)
-            transform_element = UIMatrix(rect, transform)
+            transform_element = UITransform(rect, transform)
             self.ui_elements.append(transform_element)
             element_y_pos += 60
 
@@ -150,7 +150,7 @@ class UIUnitCircle(UIElement):
         self.associated_unit_circle: Optional[UnitCircle] = associated_unit_circle
 
 
-class UIMatrix(UIElement):
+class UITransform(UIElement):
     def __init__(self, rect, associated_transform):
         super().__init__(rect)
         self.associated_transform: Optional[Transform] = associated_transform

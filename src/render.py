@@ -7,7 +7,7 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed
-from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed, UIText, UIUnitCircle
+from user_interface import UserInterface, UIVector, UIButton, UITransform, UITransformed, UIText, UIUnitCircle
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -138,7 +138,7 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                     pg.draw.rect(
                         screen, Color(brightness-70, brightness-70, brightness-70), vertical_rect, border_radius=2
                     )
-            if isinstance(ui_element, UIMatrix):
+            if isinstance(ui_element, UITransform):
                 brightness = 180
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220

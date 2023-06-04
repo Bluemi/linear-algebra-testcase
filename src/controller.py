@@ -5,7 +5,7 @@ import pygame as pg
 
 from coordinate_system import CoordinateSystem
 from elements import ElementBuffer, Element, Transform, Transformed, Vector, UnitCircle, CustomTransformed
-from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix, UIUnitCircle, UITransformed
+from user_interface import UserInterface, ActionType, UIVector, Action, UITransform, UIUnitCircle, UITransformed
 
 
 class Controller:
@@ -54,7 +54,7 @@ class Controller:
                                     self.selected_transformed.element = ui_element.associated_unit_circle
                                     self.selected_transformed = None
                                     self.update_needed = True
-                                elif isinstance(ui_element, UIMatrix):
+                                elif isinstance(ui_element, UITransform):
                                     self.selected_transformed.transform = ui_element.associated_transform
                                     self.selected_transformed = None
                                     self.update_needed = True
@@ -115,7 +115,7 @@ class Controller:
                                 element_buffer.elements.remove(ui_element.associated_vector)
                             elif isinstance(ui_element, UIUnitCircle):
                                 element_buffer.elements.remove(ui_element.associated_unit_circle)
-                            elif isinstance(ui_element, UIMatrix):
+                            elif isinstance(ui_element, UITransform):
                                 element_buffer.transforms.remove(ui_element.associated_transform)
                             elif isinstance(ui_element, UITransformed):
                                 element_buffer.transformed.remove(ui_element.associated_transformed)
