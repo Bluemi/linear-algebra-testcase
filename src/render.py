@@ -180,6 +180,8 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                         text += ' = ' + ui_element.associated_transformed.definition
                         if ui_element.associated_transformed.error:
                             text += ' [Err]:' + ui_element.associated_transformed.error
+                    else:
+                        text += ' = < >'
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
 
@@ -241,6 +243,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     eval_locals[t.name] = t.get_array()
 
                 result = None
+                element.error = None
                 try:
                     result = eval(element.compiled_definition, {}, eval_locals)
                 except Exception as e:
@@ -262,5 +265,5 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                             pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=2)
                     else:
                         element.error = 'Invalid result shape: {}'.format(result.shape)
-                else:
+                elif result is not None:
                     element.error = 'result is not numpy array'
