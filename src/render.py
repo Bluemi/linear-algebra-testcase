@@ -13,6 +13,10 @@ TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
 
 
+RED = pg.Color(255, 80, 80)
+GREEN = pg.Color(100, 220, 100)
+
+
 def render(
     screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font,
     controller: Controller, user_interface: UserInterface
@@ -212,13 +216,13 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
         if isinstance(element, Vector):
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 3 if element.hovered else 1
-            pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=width)
+            pg.draw.line(screen, GREEN, zero_point, transformed_vec, width=width)
 
         if isinstance(element, UnitCircle):
             transformed_vec = coordinate_system.transform(element.coordinates)
             width = 4 if element.hovered else 3
             for point in transformed_vec:
-                pg.draw.circle(screen, pg.Color(120, 200, 120), point, width)
+                pg.draw.circle(screen, GREEN, point, width)
 
     for element in element_buffer.transformed:
         if isinstance(element, Transformed):
@@ -226,11 +230,11 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
             if new_vec is not None:
                 if isinstance(element.element, Vector):
                     transformed_vec = coordinate_system.transform(new_vec)
-                    pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=1)
+                    pg.draw.line(screen, RED, zero_point, transformed_vec, width=1)
                 elif isinstance(element.element, UnitCircle):
                     transformed_vec = coordinate_system.transform(new_vec)
                     for point in transformed_vec:
-                        pg.draw.circle(screen, pg.Color(200, 120, 120), point, 3)
+                        pg.draw.circle(screen, RED, point, 3)
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
                 # build eval locals
@@ -262,7 +266,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                         transformed_vecs = coordinate_system.transform(result)
                         # width = 3 if element.hovered else 1
                         for transformed_vec in transformed_vecs:
-                            pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=2)
+                            pg.draw.line(screen, RED, zero_point, transformed_vec, width=2)
                     else:
                         element.error = 'Invalid result shape: {}'.format(result.shape)
                 elif result is not None:
