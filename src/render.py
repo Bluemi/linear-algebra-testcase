@@ -247,9 +247,15 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                 if isinstance(result, np.ndarray):
                     if result.shape == (2,):
                         result = np.expand_dims(result, 0)
-                    transformed_vecs = coordinate_system.transform(result)
-                    # width = 3 if element.hovered else 1
-                    for transformed_vec in transformed_vecs:
-                        pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=2)
+                    if len(result.shape) == 2:
+                        if result.shape[0] == 2 and result.shape[1] != 2:
+                            result = result.T
+                    if result.shape[-1] == 2 and len(result.shape) == 2:
+                        transformed_vecs = coordinate_system.transform(result)
+                        # width = 3 if element.hovered else 1
+                        for transformed_vec in transformed_vecs:
+                            pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=2)
+                    else:
+                        element.error = 'Invalid result shape: {}'.format(result.shape)
                 else:
                     element.error = 'result is not numpy array'

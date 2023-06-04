@@ -66,7 +66,7 @@ class UnitCircle(Element):
         return 'UnitCircle'
 
     def get_array(self):
-        return self.coordinates
+        return self.coordinates.T
 
 
 class Transform:
