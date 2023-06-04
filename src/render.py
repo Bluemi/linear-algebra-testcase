@@ -1,6 +1,7 @@
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
+from typing import Iterable
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
@@ -227,11 +228,14 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     result = eval(element.compiled_definition, {}, {'np': np})
                 except Exception as e:
                     element.error = repr(e)
-                if not isinstance(result, np.ndarray):
+                if isinstance(result, list):
+                    result = np.array(result)
+                if isinstance(result, np.ndarray):
+                    if result.shape == (2,):
+                        result = np.expand_dims(result, 0)
+                    transformed_vecs = coordinate_system.transform(result)
+                    # width = 3 if element.hovered else 1
+                    for transformed_vec in transformed_vecs:
+                        pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=2)
+                else:
                     element.error = 'result is not numpy array'
-                if result.shape == (2,):
-                    result = np.expand_dims(result, 0)
-                transformed_vecs = coordinate_system.transform(result)
-                # width = 3 if element.hovered else 1
-                for transformed_vec in transformed_vecs:
-                    pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=2)
