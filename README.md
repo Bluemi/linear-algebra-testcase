@@ -30,16 +30,17 @@ The menu shows three sections:
                    To select an object click on the created transform and then on the left side on one of the objects. Then click on the transformed again and click on the transformation you want to use.
                    This only works for two dimensional transformation matrices (WIP).
                    The last add button creates a custom-transformation. If you click on the custom transformation a window will pop up, that enables you to write python code.
-                   See [Custom Transformed](#custom-transformed) for more information. To close the window press `ESC`. You can remove the last sign with `backspace` and everything with `DEL`.
+                   See [Custom Transformed](#custom-transformed) for more information. To close the window press `Esc`. You can remove the last sign with `Backspace` and everything with `Del`.
                    As you can see, this editor is very rudimentarily (no removal/edit of signs that are not the last sign).
 
 ### Controls
-- To remove any object, transform or transformed hover over the element in the menu on the left side and press `DEL` or `Backspace`.
-- To close the formular editor press `ESC`.
+- To remove any object, transform or transformed hover over the element in the menu on the left side and press `Del` or `Backspace`.
 - You can toggle between render mode `LINE` and `POINT` by hovering over an rendered element on the left side and pressing `r`.
 
 
 ### Custom Transformed
-You can use all object names listed above and numpy functions (accessible via `np`). 
+If you create a custom transformed and click on it, a text window appears. Here you can write a python expression.
+You can use all object names listed above and numpy functions (accessible via `np`). Objects from above will be presented as [numpy-ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html).
+
 **Example:** Lets say you have a vector `v1` and a 2d transformation matrix `T1`. You could write `T1 @ v1` to apply the transformation matrix on your vector and render the result.
 The same works for unit circles (replace `v1` with `u1`). As applying a 3d transformation matrix on a 2d vector is a bit complicated, you can use the special function `mm()`(matrix-multiplication): `mm(T1, v1)`. This will automatically convert your vector `(x, y)` to a new vector `(x, y, 1)` apply the transformation matrix and then cut the last vector dimension again, to regain 2 dimensions.
