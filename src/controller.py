@@ -4,8 +4,8 @@ import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element, Transform, Transformed, Vector, UnitCircle
-from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix, UIUnitCircle
+from elements import ElementBuffer, Element, Transform, Transformed, Vector, UnitCircle, CustomTransformed
+from user_interface import UserInterface, ActionType, UIVector, Action, UIMatrix, UIUnitCircle, UITransformed
 
 
 class Controller:
@@ -19,6 +19,7 @@ class Controller:
 
         self.selected_transformed: Optional[Transformed] = None
         self.selected_transform: Optional = None
+        self.get_definition_for: Optional = None
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
@@ -57,6 +58,10 @@ class Controller:
                                     self.selected_transformed.transform = ui_element.associated_transform
                                     self.selected_transformed = None
                                     self.update_needed = True
+                            if isinstance(ui_element, UITransformed):
+                                if isinstance(ui_element.associated_transformed, CustomTransformed):
+                                    self.get_definition_for = ui_element
+                                    self.update_needed = True
                             # handle on click
                             action = ui_element.on_click(self.mouse_position)
                             if action is not None:
@@ -87,11 +92,25 @@ class Controller:
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
         elif event.type == pg.KEYUP:
-            if event.unicode == 'n':
-                # element_buffer.generate_transform(default=False)
-                self.update_needed = True
-            elif event.key == 27:
-                self.running = False
+            if self.get_definition_for is not None:
+                if event.key == 27:
+                    # self.running = False
+                    self.get_definition_for.associated_transformed.compile_definition()
+                    self.get_definition_for = None
+                    self.update_needed = True
+                else:
+                    custom_transformed: CustomTransformed = self.get_definition_for.associated_transformed
+                    if event.key == 8:
+                        custom_transformed.definition = custom_transformed.definition[:-1]
+                    elif event.key == 127:
+                        custom_transformed.definition = ''
+                    elif event.unicode:
+                        custom_transformed.definition += event.unicode
+                    self.update_needed = True
+            else:
+                if event.unicode == 'n':
+                    # element_buffer.generate_transform(default=False)
+                    self.update_needed = True
         else:
             # print(event)
             pass
@@ -133,6 +152,9 @@ class Controller:
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_TRANSFORMED:
                 element_buffer.transformed.append(Transformed(None, None))
+                self.update_needed = True
+            elif action.action_type == ActionType.ADD_CUSTOM_TRANSFORMED:
+                element_buffer.transformed.append(CustomTransformed())
                 self.update_needed = True
             elif action.action_type == ActionType.PICK_FOR_TRANSFORMED:
                 self.selected_transformed = action.data['transformed']

@@ -78,6 +78,21 @@ class Transformed:
         return None
 
 
+class CustomTransformed:
+    def __init__(self):
+        self.definition = ""
+        self.compiled_definition = None
+        self.error = None
+
+    def compile_definition(self):
+        self.error = None
+        try:
+            self.compiled_definition = compile(self.definition, "<string>", "eval")
+        except SyntaxError as e:
+            self.compiled_definition = None
+            self.error = repr(e)
+
+
 class ElementBuffer:
     def __init__(self):
         self.elements = []

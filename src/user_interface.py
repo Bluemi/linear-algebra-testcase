@@ -1,9 +1,9 @@
 import enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import pygame as pg
 
-from elements import Element, Transform, ElementBuffer, Transformed, Vector, UnitCircle
+from elements import Element, Transform, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed
 
 
 class UserInterface:
@@ -91,6 +91,11 @@ class UserInterface:
         transformed_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
                                           sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transformed_add_button)
+
+        # Add Button - Custom Transformed
+        transformed_add_button = UIButton(pg.Rect(160, element_y_pos-4, 25, 25),
+                                          action=ActionType.ADD_CUSTOM_TRANSFORMED, sign=UIButton.Sign.PLUS)
+        self.ui_elements.append(transformed_add_button)
         element_y_pos += 30
 
         # Transformed Objects
@@ -107,8 +112,9 @@ class ActionType(enum.Enum):
     ADD_UNIT_CIRCLE = 1
     ADD_TRANSFORM = 2
     ADD_TRANSFORMED = 3
-    PICK_FOR_TRANSFORMED = 4
-    PICK_TRANSFORM_VAL = 5
+    ADD_CUSTOM_TRANSFORMED = 4
+    PICK_FOR_TRANSFORMED = 5
+    PICK_TRANSFORM_VAL = 6
 
 
 class Action:
@@ -172,11 +178,12 @@ class UIMatrix(UIElement):
 class UITransformed(UIElement):
     def __init__(self, rect, associated_transformed):
         super().__init__(rect)
-        self.associated_transformed: Optional[Transformed] = associated_transformed
+        self.associated_transformed: Optional[Union[Transformed, CustomTransformed]] = associated_transformed
 
     def on_click(self, mouse_position) -> Optional[Action]:
         if self.rect.collidepoint(mouse_position):
-            return Action(ActionType.PICK_FOR_TRANSFORMED, {'transformed': self.associated_transformed})
+            if isinstance(self.associated_transformed, Transformed):
+                return Action(ActionType.PICK_FOR_TRANSFORMED, {'transformed': self.associated_transformed})
 
 
 class UIButton(UIElement):

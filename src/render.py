@@ -4,7 +4,7 @@ from pygame import Surface, Color
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from elements import ElementBuffer, Vector, Transformed, UnitCircle
+from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed
 from user_interface import UserInterface, UIVector, UIButton, UIMatrix, UITransformed, UIText, UIUnitCircle
 
 TARGET_NUM_POINTS = 12
@@ -158,16 +158,35 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 brightness = 180
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220
-                text = 'Transformed {} * {}'.format(
-                    ui_element.associated_transformed.transform, ui_element.associated_transformed.element
-                )
-                font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
-                screen.blit(font, ui_element.rect)
+                if isinstance(ui_element.associated_transformed, Transformed):
+                    text = 'Transformed {} * {}'.format(
+                        ui_element.associated_transformed.transform, ui_element.associated_transformed.element
+                    )
+                    font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
+                    screen.blit(font, ui_element.rect)
+                elif isinstance(ui_element.associated_transformed, CustomTransformed):
+                    text = ui_element.associated_transformed.definition or 'CustomTransformed'
+                    font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
+                    screen.blit(font, ui_element.rect)
 
     # draw menu rect
     alpha = 210 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
     user_interface.menu_image.set_alpha(alpha)
     screen.blit(user_interface.menu_image, user_interface.menu_rect)
+
+    if controller.get_definition_for is not None:
+        draw_text_input(screen, controller, render_font)
+
+
+def draw_text_input(screen: Surface, controller: Controller, render_font):
+    pg.draw.rect(screen, pg.Color(128, 128, 128), pg.Rect(200, 200, screen.get_width() - 400, 200))
+    small_rect = pg.Rect(220, 200+80, screen.get_width() - 440, 40)
+    pg.draw.rect(screen, pg.Color(28, 28, 28), small_rect)
+
+    elem: CustomTransformed = controller.get_definition_for.associated_transformed
+
+    font = render_font.render(elem.definition, True, pg.Color(220, 220, 220))
+    screen.blit(font, small_rect.move(3, 10))
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
