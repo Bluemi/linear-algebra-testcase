@@ -16,7 +16,6 @@ def main():
     controller = Controller()
     coordinate_system = CoordinateSystem()
     element_buffer = ElementBuffer()
-    element_buffer.create_example_elements()
     render_font = pg.font.Font(pg.font.get_default_font(), 18)
     user_interface = UserInterface()
 
