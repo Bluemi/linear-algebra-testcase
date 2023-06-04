@@ -108,9 +108,19 @@ class Controller:
                         custom_transformed.set_definition(custom_transformed.definition + event.unicode)
                     self.update_needed = True
             else:
-                if event.unicode == 'n':
-                    # element_buffer.generate_transform(default=False)
+                if event.key == 8 or event.key == 127:
+                    for ui_element in user_interface.ui_elements:
+                        if ui_element.rect.collidepoint(self.mouse_position):
+                            if isinstance(ui_element, UIVector):
+                                element_buffer.elements.remove(ui_element.associated_vector)
+                            elif isinstance(ui_element, UIUnitCircle):
+                                element_buffer.elements.remove(ui_element.associated_unit_circle)
+                            elif isinstance(ui_element, UIMatrix):
+                                element_buffer.transforms.remove(ui_element.associated_transform)
+                            elif isinstance(ui_element, UITransformed):
+                                element_buffer.transformed.remove(ui_element.associated_transformed)
                     self.update_needed = True
+
         else:
             # print(event)
             pass

@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 import pygame as pg
 
-from elements import Element, Transform, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed
+from elements import Transform, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed
 
 
 class UserInterface:
