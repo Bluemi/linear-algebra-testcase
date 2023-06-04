@@ -1,7 +1,6 @@
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
-from typing import Iterable
 
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
@@ -110,13 +109,16 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 brightness = 180
                 if ui_element.associated_vector and ui_element.associated_vector.hovered:
                     brightness = 220
-                font = render_font.render('Vector ' + repr(ui_element.associated_vector), True, pg.Color(brightness, brightness, brightness))
+                font = render_font.render(
+                    ui_element.associated_vector.name + ' ' + repr(ui_element.associated_vector), True,
+                    pg.Color(brightness, brightness, brightness)
+                )
                 screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIUnitCircle):
                 brightness = 180
                 if ui_element.associated_unit_circle and ui_element.associated_unit_circle.hovered:
                     brightness = 220
-                font = render_font.render('UnitCircle', True, pg.Color(brightness, brightness, brightness))
+                font = render_font.render(ui_element.associated_unit_circle.name, True, pg.Color(brightness, brightness, brightness))
                 screen.blit(font, ui_element.rect)
             if isinstance(ui_element, UIButton):
                 brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
@@ -135,7 +137,10 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220
                 color = pg.Color(brightness, brightness, brightness)
-                font = render_font.render('Matrix', True, pg.Color(brightness, brightness, brightness))
+
+                font = render_font.render(
+                    ui_element.associated_transform.name, True, pg.Color(brightness, brightness, brightness)
+                )
                 screen.blit(font, ui_element.rect.move(0, 15))
 
                 str_format = '{:.2f}'
@@ -160,18 +165,19 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 if ui_element.rect.collidepoint(controller.mouse_position):
                     brightness = 220
                 if isinstance(ui_element.associated_transformed, Transformed):
-                    text = 'Transformed {} * {}'.format(
-                        ui_element.associated_transformed.transform, ui_element.associated_transformed.element
-                    )
+                    transform = ui_element.associated_transformed.transform
+                    transform_name = transform.name if transform else '< >'
+                    element = ui_element.associated_transformed.element
+                    element_name = element.name if element else '< >'
+                    text = '{} = {} @ {}'.format(ui_element.associated_transformed.name, transform_name, element_name)
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
                 elif isinstance(ui_element.associated_transformed, CustomTransformed):
+                    text = ui_element.associated_transformed.name
                     if ui_element.associated_transformed.definition:
-                        text = ui_element.associated_transformed.definition
+                        text += ' = ' + ui_element.associated_transformed.definition
                         if ui_element.associated_transformed.error:
-                            text += ' ' + ui_element.associated_transformed.error
-                    else:
-                        text = '<CustomTransformed>'
+                            text += ' [Err]:' + ui_element.associated_transformed.error
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
 
@@ -224,10 +230,18 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
                 result = None
+                # build eval locals
+                eval_locals = {'np': np}
+                for e in element_buffer.elements:
+                    eval_locals[e.name] = e.get_array()
+                for t in element_buffer.transforms:
+                    eval_locals[t.name] = t.get_array()
+
                 try:
-                    result = eval(element.compiled_definition, {}, {'np': np})
+                    result = eval(element.compiled_definition, {}, eval_locals)
                 except Exception as e:
                     element.error = repr(e)
+
                 if isinstance(result, list):
                     result = np.array(result)
                 if isinstance(result, np.ndarray):
@@ -236,6 +250,6 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     transformed_vecs = coordinate_system.transform(result)
                     # width = 3 if element.hovered else 1
                     for transformed_vec in transformed_vecs:
-                        pg.draw.line(screen, pg.Color(120, 200, 120), zero_point, transformed_vec, width=2)
+                        pg.draw.line(screen, pg.Color(200, 120, 120), zero_point, transformed_vec, width=2)
                 else:
                     element.error = 'result is not numpy array'

@@ -141,20 +141,23 @@ class Controller:
 
     def handle_actions(self, element_buffer: ElementBuffer):
         for action in self.actions:
+            num_elements = len(element_buffer.elements) + 1
+            num_transformed = len(element_buffer.transformed) + 1
+            num_transforms = len(element_buffer.transforms) + 1
             if action.action_type == ActionType.ADD_VECTOR:
-                element_buffer.elements.append(Vector(np.array([1, 0])))
+                element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1, 0])))
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_UNIT_CIRCLE:
-                element_buffer.elements.append(UnitCircle())
+                element_buffer.elements.append(UnitCircle('u{}'.format(num_elements)))
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_TRANSFORM:
-                element_buffer.transforms.append(Transform())
+                element_buffer.transforms.append(Transform('T{}'.format(num_transforms)))
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_TRANSFORMED:
-                element_buffer.transformed.append(Transformed(None, None))
+                element_buffer.transformed.append(Transformed('t{}'.format(num_transformed), None, None))
                 self.update_needed = True
             elif action.action_type == ActionType.ADD_CUSTOM_TRANSFORMED:
-                element_buffer.transformed.append(CustomTransformed())
+                element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed)))
                 self.update_needed = True
             elif action.action_type == ActionType.PICK_FOR_TRANSFORMED:
                 self.selected_transformed = action.data['transformed']
