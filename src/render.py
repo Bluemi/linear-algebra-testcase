@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
@@ -229,27 +231,30 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                         pg.draw.circle(screen, pg.Color(200, 120, 120), point, 3)
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
-                result = None
                 # build eval locals
                 eval_locals = {'np': np}
                 for e in element_buffer.elements:
                     eval_locals[e.name] = e.get_array()
                 for t in element_buffer.transforms:
                     eval_locals[t.name] = t.get_array()
+                for t in element_buffer.transformed:
+                    eval_locals[t.name] = t.get_array()
 
+                result = None
                 try:
                     result = eval(element.compiled_definition, {}, eval_locals)
                 except Exception as e:
                     element.error = repr(e)
 
-                if isinstance(result, list):
+                element.last_result = result
+                if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
                     result = np.array(result)
                 if isinstance(result, np.ndarray):
+                    element.last_result = result
                     if result.shape == (2,):
                         result = np.expand_dims(result, 0)
-                    if len(result.shape) == 2:
-                        if result.shape[0] == 2 and result.shape[1] != 2:
-                            result = result.T
+                    if len(result.shape) == 2 and result.shape[0] == 2 and result.shape[1] != 2:
+                        result = result.T
                     if result.shape[-1] == 2 and len(result.shape) == 2:
                         transformed_vecs = coordinate_system.transform(result)
                         # width = 3 if element.hovered else 1

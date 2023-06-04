@@ -93,6 +93,9 @@ class Transformed:
             return (self.transform.matrix @ self.element.coordinates.T).T
         return None
 
+    def get_array(self):
+        return self.get_position()
+
 
 class CustomTransformed:
     def __init__(self, name: str):
@@ -100,6 +103,7 @@ class CustomTransformed:
         self.definition = ""
         self.compiled_definition = None
         self.error = None
+        self.last_result = None
 
     def compile_definition(self):
         self.error = None
@@ -113,6 +117,9 @@ class CustomTransformed:
         self.definition = definition
         self.error = None
         self.compiled_definition = None
+
+    def get_array(self):
+        return self.last_result
 
 
 class ElementBuffer:
