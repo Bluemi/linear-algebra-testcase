@@ -118,7 +118,7 @@ class Transformed:
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
-            return (self.transform.matrix @ self.element.coordinates.T).T
+            return (self.transform.get_array() @ self.element.coordinates.T).T
         return None
 
     def get_array(self):
