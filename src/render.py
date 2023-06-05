@@ -292,4 +292,4 @@ def transform_helper(transformation_matrix, mat):
 
 
 def normalize_vec(vec):
-    return vec / np.linalg.norm(vec)
+    return vec / (np.linalg.norm(vec) + 0.000000001)
