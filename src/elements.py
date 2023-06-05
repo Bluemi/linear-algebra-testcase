@@ -7,6 +7,18 @@ import abc
 from coordinate_system import CoordinateSystem
 
 
+DRAG_SNAP_DISTANCE = 0.05
+
+
+def snap(coordinates: np.ndarray):
+    coordinates = coordinates.astype(dtype=float)
+    rounded = np.round(coordinates)
+    close_indices = np.abs(rounded - coordinates) < DRAG_SNAP_DISTANCE
+    coordinates[close_indices] = rounded[close_indices]
+    coordinates[coordinates == 0] = 0
+    return coordinates
+
+
 class RenderKind(enum.Enum):
     LINE = enum.auto()
     POINT = enum.auto()
@@ -47,7 +59,7 @@ class Vector(Element):
         return diff < 100
 
     def move_to(self, mouse_position: np.ndarray):
-        self.coordinates = mouse_position.astype(dtype=float)
+        self.coordinates = snap(mouse_position)
 
     def __repr__(self):
         return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
@@ -70,6 +82,7 @@ class UnitCircle(Element):
         return np.any(diff < 100)
 
     def move_to(self, mouse_position: np.ndarray):
+        mouse_position = snap(mouse_position)
         space = np.linspace(0, np.pi * 2, num=self.num_points, endpoint=False)
         self.coordinates = np.stack([np.cos(space) * mouse_position[0], np.sin(space) * mouse_position[1]], axis=1)
 
