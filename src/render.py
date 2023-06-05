@@ -249,7 +249,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
         elif isinstance(element, CustomTransformed):
             if element.compiled_definition:
                 # build eval locals
-                eval_locals = {'np': np, 'mm': transform_helper}
+                eval_locals = {'np': np, 'mm': transform_helper, 'norm': normalize_vec}
                 for e in element_buffer.elements:
                     eval_locals[e.name] = e.get_array()
                 for t in element_buffer.transforms:
@@ -289,3 +289,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
 
 def transform_helper(transformation_matrix, mat):
     return transform_f(transformation_matrix.T, mat.T).T
+
+
+def normalize_vec(vec):
+    return vec / np.linalg.norm(vec)
