@@ -4,20 +4,19 @@ View [3Blue1Brown](https://www.youtube.com/watch?v=kYB8IZa5AuE) for a nice intro
 
 
 ## Installation
-- clone the repository
-- install requirements (aktivate virtualenv)
-```
+```bash
 # clone repository
 git clone https://github.com/Bluemi/linear-algebra-testcase.git
 cd linear-algebra-testcase
 
 # install requirements (numpy, pygame)
-# maybe create/activate a virtual python-environment before (https://pypi.org/project/virtualenvwrapper/)
 pip3 install -r requirements.txt
 
 # run the programm
 python3 ./src/main.py
 ```
+
+Consider using a virtual python-environment (eg [virtualenvwrapper](https://pypi.org/project/virtualenvwrapper)).
 
 ## Usage
 You can move around in the plane with the mouse. Zoom is controlled with the mouse wheel.
