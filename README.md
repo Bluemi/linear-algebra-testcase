@@ -46,3 +46,8 @@ You can use all object names listed above and numpy functions (accessible via `n
 The same works for unit circles (replace `v1` with `u1`).
 
 As applying a 3d transformation matrix on a 2d vector is a bit complicated, you can use the special function `mm()`(matrix-multiplication): `mm(T1, v1)`.
+
+## Limitations / Risks
+- To evaluate custom-transformations the python builtin `eval()` is used, which allows arbitrary code execution. For example you could use `exit()` as formula to end the program. So be a bit careful.
+- The first kind of transformated-objects is not supported for 3d-transformation matrices (WIP).
+- The formula editor is very limited. No cursor position and only very basic editing possibilities.
