@@ -61,7 +61,8 @@ class UnitCircle(Element):
         super().__init__(name, render_kind)
         self.num_points = num_points
         space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
-        self.coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
+        coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
+        self.coordinates = np.vstack([coordinates, [0, 0]])  # add zero point
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         pos = coordinate_system.transform(self.coordinates)
