@@ -13,7 +13,7 @@ cd linear-algebra-testcase
 
 # install requirements (numpy, pygame)
 # maybe create/activate a virtual python-environment before (https://pypi.org/project/virtualenvwrapper/)
-pip install requirements.txt
+pip3 install -r requirements.txt
 
 # run the programm
 python ./src/main.py
