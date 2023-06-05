@@ -7,7 +7,7 @@ import abc
 from coordinate_system import CoordinateSystem
 
 
-DRAG_SNAP_DISTANCE = 0.05
+DRAG_SNAP_DISTANCE = 0.07
 
 
 def snap(coordinates: np.ndarray):
