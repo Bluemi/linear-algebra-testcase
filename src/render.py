@@ -151,11 +151,11 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                 screen.blit(font, ui_element.rect.move(0, label_y_distance))
 
                 str_format = '{:.2f}'
-                matrix = ui_element.associated_transform.matrix
+                matrix = ui_element.associated_transform.get_array()
                 for y in range(matrix.shape[0]):
                     for x in range(matrix.shape[1]):
                         font = render_font.render(
-                            str_format.format(ui_element.associated_transform.matrix[y, x]), True, color
+                            str_format.format(matrix[y, x]), True, color
                         )
                         screen.blit(font, ui_element.rect.move(40 + 50 * x, 3 + 24 * y))
 

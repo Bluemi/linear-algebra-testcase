@@ -96,7 +96,7 @@ class Transform2D:
         self.matrix = np.eye(2)
 
     def get_array(self):
-        return self.matrix
+        return snap(self.matrix)
 
 
 class Transform3D:
@@ -105,7 +105,7 @@ class Transform3D:
         self.matrix = np.eye(3)
 
     def get_array(self):
-        return self.matrix
+        return snap(self.matrix)
 
 
 class Transformed:
