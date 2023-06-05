@@ -16,7 +16,7 @@ cd linear-algebra-testcase
 pip3 install -r requirements.txt
 
 # run the programm
-python ./src/main.py
+python3 ./src/main.py
 ```
 
 ## Usage
