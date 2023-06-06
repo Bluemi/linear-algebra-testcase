@@ -7,8 +7,7 @@ from pygame import Surface, Color
 from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_f
 from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed, RenderKind
-from user_interface import UserInterface, UIVector, UIButton, UITransform2D, UITransformed, UIText, UIUnitCircle, \
-    UITransform3D
+from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
@@ -32,17 +31,17 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
     def adapt_quotient(quotient):
         if quotient <= 0:
             raise ValueError('Invalid quotient: {}'.format(quotient))
-        numb_ten_potentes = 0
+        numb_ten_potency = 0
         while quotient > 10:
             quotient *= 0.1
-            numb_ten_potentes += 1
+            numb_ten_potency += 1
         while quotient < 1:
             quotient *= 10
-            numb_ten_potentes -= 1
+            numb_ten_potency -= 1
 
         diffs = [abs(quotient - target) for target in TARGET_DIVIDENDS]
         index = np.argmin(diffs)
-        best_fitting = TARGET_DIVIDENDS[index] * (10 ** numb_ten_potentes)
+        best_fitting = TARGET_DIVIDENDS[index] * (10 ** numb_ten_potency)
 
         return best_fitting
 
@@ -104,90 +103,6 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
 def draw_user_interface(screen: Surface, user_interface: UserInterface, controller: Controller,
                         render_font: pg.font.Font):
-    if user_interface.showing and False:
-        pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
-
-        for ui_element in user_interface.ui_elements:
-            if isinstance(ui_element, UIText):
-                font = render_font.render(ui_element.text, True, pg.Color(180, 180, 180))
-                screen.blit(font, ui_element.rect)
-            if isinstance(ui_element, UIVector):
-                brightness = 180
-                if ui_element.associated_vector and ui_element.associated_vector.hovered:
-                    brightness = 220
-                font = render_font.render(
-                    ui_element.associated_vector.name + ' ' + repr(ui_element.associated_vector), True,
-                    pg.Color(brightness, brightness, brightness)
-                )
-                screen.blit(font, ui_element.rect)
-            if isinstance(ui_element, UIUnitCircle):
-                brightness = 180
-                if ui_element.associated_unit_circle and ui_element.associated_unit_circle.hovered:
-                    brightness = 220
-                font = render_font.render(ui_element.associated_unit_circle.name, True, pg.Color(brightness, brightness, brightness))
-                screen.blit(font, ui_element.rect)
-            if isinstance(ui_element, UIButton):
-                brightness = 120 if ui_element.rect.collidepoint(controller.mouse_position) else 100
-                pg.draw.rect(screen, Color(brightness, brightness, brightness), ui_element.rect, border_radius=4)
-                if ui_element.sign == UIButton.Sign.PLUS:
-                    horizontal_rect = pg.Rect(ui_element.rect.left+4, ui_element.rect.top+11, ui_element.rect.width-8, 3)
-                    pg.draw.rect(
-                        screen, Color(brightness-70, brightness-70, brightness-70), horizontal_rect, border_radius=2
-                    )
-                    vertical_rect = pg.Rect(ui_element.rect.left+11, ui_element.rect.top+4, 3, ui_element.rect.height-8)
-                    pg.draw.rect(
-                        screen, Color(brightness-70, brightness-70, brightness-70), vertical_rect, border_radius=2
-                    )
-            if isinstance(ui_element, UITransform2D) or isinstance(ui_element, UITransform3D):
-                brightness = 180
-                if ui_element.rect.collidepoint(controller.mouse_position):
-                    brightness = 220
-                color = pg.Color(brightness, brightness, brightness)
-
-                font = render_font.render(
-                    ui_element.associated_transform.name, True, pg.Color(brightness, brightness, brightness)
-                )
-                label_y_distance = (ui_element.rect.height - 20) // 2
-                screen.blit(font, ui_element.rect.move(0, label_y_distance))
-
-                str_format = '{:.2f}'
-                matrix = ui_element.associated_transform.get_array()
-                for y in range(matrix.shape[0]):
-                    for x in range(matrix.shape[1]):
-                        font = render_font.render(
-                            str_format.format(matrix[y, x]), True, color
-                        )
-                        screen.blit(font, ui_element.rect.move(40 + 50 * x, 3 + 24 * y))
-
-                pg.draw.line(screen, color, ui_element.rect.move(30, 0).topleft,
-                             ui_element.rect.move(30, ui_element.rect.height).topleft, width=2)
-                x_pos = 145 if isinstance(ui_element, UITransform2D) else 190
-                pg.draw.line(screen, color, ui_element.rect.move(x_pos, 0).topleft,
-                             ui_element.rect.move(x_pos, ui_element.rect.height).topleft, width=2)
-
-            if isinstance(ui_element, UITransformed):
-                brightness = 180
-                if ui_element.rect.collidepoint(controller.mouse_position):
-                    brightness = 220
-                if isinstance(ui_element.associated_transformed, Transformed):
-                    transform = ui_element.associated_transformed.transform
-                    transform_name = transform.name if transform else '< >'
-                    element = ui_element.associated_transformed.element
-                    element_name = element.name if element else '< >'
-                    text = '{} = {} @ {}'.format(ui_element.associated_transformed.name, transform_name, element_name)
-                    font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
-                    screen.blit(font, ui_element.rect)
-                elif isinstance(ui_element.associated_transformed, CustomTransformed):
-                    text = ui_element.associated_transformed.name
-                    if ui_element.associated_transformed.definition:
-                        text += ' = ' + ui_element.associated_transformed.definition
-                        if ui_element.associated_transformed.error:
-                            text += ' [Err]:' + ui_element.associated_transformed.error
-                    else:
-                        text += ' = < >'
-                    font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
-                    screen.blit(font, ui_element.rect)
-
     user_interface.render(screen)
 
     if controller.get_definition_for is not None:

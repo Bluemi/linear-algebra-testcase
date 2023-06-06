@@ -30,7 +30,7 @@ The menu shows three sections:
                    This only works for two dimensional transformation matrices (WIP).
                    The last add button creates a custom-transformation. If you click on the custom transformation a window will pop up, that enables you to write python code.
                    See [Custom Transformed](#custom-transformed) for more information. To close the window press `Esc`. You can remove the last sign with `Backspace` and everything with `Del`.
-                   As you can see, this editor is very rudimentarily (no removal/edit of signs that are not the last sign).
+                   As you can see, this editor is very rudimentary (no removal/edit of signs that are not the last sign).
 
 ### Controls
 - To remove any object, transform or transformed hover over the element in the menu on the left side and press `Del` or `Backspace`.
@@ -48,7 +48,7 @@ As applying a 3d transformation matrix on a 2d vector is a bit complicated, you 
 
 ## Limitations / Risks
 - To evaluate custom-transformations the python builtin `eval()` is used, which allows arbitrary code execution. For example you could use `exit()` as formula to end the program. So be a bit careful.
-- The first kind of transformated-objects is not supported for 3d-transformation matrices (WIP).
+- The first kind of transformed-objects is not supported for 3d-transformation matrices (WIP).
 - The formula editor is very limited. No cursor position and only very basic editing possibilities.
 - Many more...
-- The code is in a horribly shape. Maybe I will find time to tidy up a bit. Probably not...
+- The code is in a horrible shape. Maybe I will find time to tidy up a bit. Probably not...
