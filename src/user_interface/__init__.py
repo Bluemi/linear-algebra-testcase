@@ -1,9 +1,12 @@
 import enum
 from typing import List, Optional, Union
 
+import numpy as np
 import pygame as pg
 
 from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D
+from user_interface.items import Container, Label, Button, Image
+from utils import gray
 
 
 class UserInterface:
@@ -16,6 +19,11 @@ class UserInterface:
         self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
 
         self.scroll_position = 0
+
+        self.item_container = Container(pg.Rect(100, 200, 400, 400), color=gray(50))
+        self.item_container.add_child(Label((20, 20), 'Hello World'))
+        self.item_container.add_child(Button(pg.Rect(20, 60, 100, 30), label=Label((10, 3), 'Click me')))
+        self.item_container.add_child(Button((20, 100), label=Image((0, 0), Button.create_menu_image())))
 
     def _create_menu_image(self):
         menu_image = pg.Surface((self.menu_rect.width,  self.menu_rect.height))
@@ -32,6 +40,10 @@ class UserInterface:
 
     def toggle(self):
         self.showing = not self.showing
+
+    def handle_event(self, event: pg.event.Event, mouse_position: np.ndarray):
+        rel_mouse_position = mouse_position - np.array([self.item_container.rect.left, self.item_container.rect.top])
+        self.item_container.handle_event(event, rel_mouse_position)
 
     def recreate_ui_elements(self, element_buffer: ElementBuffer):
         self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])

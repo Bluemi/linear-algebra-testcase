@@ -25,6 +25,7 @@ class Controller:
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
+        user_interface.handle_event(event, self.mouse_position)
         self.actions = []
         if event.type == pg.QUIT:
             self.running = False

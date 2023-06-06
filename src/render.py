@@ -196,6 +196,8 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
     if controller.get_definition_for is not None:
         draw_text_input(screen, controller, render_font)
 
+    user_interface.item_container.render(screen)
+
 
 def draw_text_input(screen: Surface, controller: Controller, render_font):
     pg.draw.rect(screen, pg.Color(128, 128, 128), pg.Rect(200, 200, screen.get_width() - 400, 200))
