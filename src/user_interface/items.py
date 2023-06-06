@@ -385,6 +385,7 @@ class VectorItem(ItemContainer):
                 self.label_1_dragged = True
             if self.number_label_2.rect.collidepoint(rel_mouse_position):
                 self.label_2_dragged = True
+            self.on_click()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
@@ -453,6 +454,7 @@ class TransformItem(ItemContainer):
                 for x in range(self.associated_transform.matrix.shape[1]):
                     if self.number_labels[y][x].rect.collidepoint(rel_mouse_position):
                         self.dragged_label_index = (y, x)
+            self.on_click()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
@@ -469,3 +471,8 @@ class TransformItem(ItemContainer):
         """
         super().update_from(other)
         self.dragged_label_index = other.dragged_label_index
+
+
+class TransformedLabel(Label):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str):
+        super().__init__(name, position, text)

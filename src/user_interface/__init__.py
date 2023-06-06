@@ -7,7 +7,8 @@ from pygame import Surface, Rect
 
 from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D, \
     RenderKind
-from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem
+from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem, \
+    TransformedLabel
 from utils import gray
 
 
@@ -23,6 +24,8 @@ class UserInterface:
         self.scroll_position = 0
         self.item_y_position = 0
 
+        self.choosing_for_transformed: Optional[Transformed] = None
+
     def render(self, screen: Surface):
         self.root.render(screen)
 
@@ -33,7 +36,7 @@ class UserInterface:
         self.root.handle_event(event, mouse_position)
         self.root.handle_every_event(event, mouse_position)
 
-    def recreate_ui_elements(self, element_buffer: ElementBuffer):
+    def recreate_ui_elements(self, element_buffer: ElementBuffer, controller):
         new_root = RootContainer()
         item_container = Container('item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False)
         new_root.add_child(item_container)
@@ -41,7 +44,7 @@ class UserInterface:
         self.item_y_position = 0
         self.add_objects_section(item_container, element_buffer)
         self.add_transforms_section(item_container, element_buffer)
-        self.add_transformed_section(item_container, element_buffer)
+        self.add_transformed_section(item_container, element_buffer, controller)
         self.add_menu_button(new_root, item_container)
 
         # update from old root
@@ -177,6 +180,13 @@ class UserInterface:
             if isinstance(element, Vector):
                 vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element)
                 item_container.add_child(vector_item)
+
+                def set_vector_for_transformed():
+                    if self.choosing_for_transformed:
+                        self.choosing_for_transformed.element = element
+                        self.choosing_for_transformed = None
+
+                vector_item.on_click = set_vector_for_transformed
                 self.item_y_position += vector_item.rect.height + 1
             elif isinstance(element, UnitCircle):
                 object_item = Label(element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle')
@@ -214,10 +224,15 @@ class UserInterface:
 
         for transform in element_buffer.transforms:
             transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
+            def set_transform_for_transformed():
+                if self.choosing_for_transformed:
+                    self.choosing_for_transformed.transform = transform
+                    self.choosing_for_transformed = None
+            transform_item.on_click = set_transform_for_transformed
             item_container.add_child(transform_item)
             self.item_y_position += transform_item.rect.height + 1
 
-    def add_transformed_section(self, item_container, element_buffer: ElementBuffer):
+    def add_transformed_section(self, item_container, element_buffer: ElementBuffer, controller):
         self.item_y_position += 10
         transformed_label = Label('transformed_label', (10, self.item_y_position), 'Transformed')
         item_container.add_child(transformed_label)
@@ -252,10 +267,13 @@ class UserInterface:
             if isinstance(transformed, Transformed):
                 transform_str = transformed.transform.name if transformed.transform is not None else '< >'
                 element_str = transformed.element.name if transformed.element is not None else '< >'
-                transformed_item = Label(
+                transformed_item = TransformedLabel(
                     transformed.name + '_ui', (10, self.item_y_position),
                     '{} = {} @ {}'.format(transformed.name, transform_str, element_str)
                 )
+                def transformed_label_on_click():
+                    self.choosing_for_transformed = transformed
+                transformed_item.on_click = transformed_label_on_click
                 item_container.add_child(transformed_item)
                 self.item_y_position += transformed_item.rect.height + 1
             elif isinstance(transformed, CustomTransformed):
@@ -267,6 +285,9 @@ class UserInterface:
                 else:
                     text += ' = < >'
                 transformed_item = Label(transformed.name + '_ui', (10, self.item_y_position), text)
+                def set_for_custom_transformed():
+                    controller.get_definition_for = transformed
+                transformed_item.on_click = set_for_custom_transformed
                 item_container.add_child(transformed_item)
                 self.item_y_position += transformed_item.rect.height + 1
 

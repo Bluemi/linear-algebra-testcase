@@ -199,7 +199,7 @@ def draw_text_input(screen: Surface, controller: Controller, render_font):
     small_rect = pg.Rect(220, 200+80, screen.get_width() - 440, 40)
     pg.draw.rect(screen, pg.Color(28, 28, 28), small_rect)
 
-    elem: CustomTransformed = controller.get_definition_for.associated_transformed
+    elem: CustomTransformed = controller.get_definition_for
 
     font = render_font.render(elem.definition, True, pg.Color(220, 220, 220))
     screen.blit(font, small_rect.move(3, 12))

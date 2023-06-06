@@ -99,11 +99,11 @@ class Controller:
         elif event.type == pg.KEYUP:
             if self.get_definition_for is not None:
                 if event.key == 27:
-                    self.get_definition_for.associated_transformed.compile_definition()
+                    self.get_definition_for.compile_definition()
                     self.get_definition_for = None
                     self.update_needed = True
                 else:
-                    custom_transformed: CustomTransformed = self.get_definition_for.associated_transformed
+                    custom_transformed: CustomTransformed = self.get_definition_for
                     if event.key == 8:
                         custom_transformed.set_definition(custom_transformed.definition[:-1])
                     elif event.key == 127:
