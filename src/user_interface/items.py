@@ -5,23 +5,39 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from utils import gray
+from elements import Vector, Transform2D, Transform3D
+from utils import gray, format_float
+
+
+def noop():
+    pass
 
 
 class Item(ABC):
-    def __init__(self, rect: Rect, visible: bool = True):
+    def __init__(self, name: str, rect: Rect, visible: bool = True):
         """
         Initiate a new item.
         :param rect: The rect of this item, relative to the containing element.
         :param visible: Whether this element should be visible or not.
         """
+        self.name: str = name
         self.rect: Rect = rect
         self.visible: bool = visible
+        self.on_click: Callable = noop
 
     @abstractmethod
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         """
         Function that a subclass can overwrite to handle given events.
+
+        :param event: The pygame event to handle
+        :param rel_mouse_position: The mouse position relative to this element as (x, y).
+        """
+        pass
+
+    def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        """
+        Function that a subclass can overwrite to handle given events. Every event is reaching this position.
 
         :param event: The pygame event to handle
         :param rel_mouse_position: The mouse position relative to this element as (x, y).
@@ -37,10 +53,18 @@ class Item(ABC):
         """
         pass
 
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: Item
+        """
+        self.visible = other.visible
+
 
 class ItemContainer(Item):
-    def __init__(self, rect: Rect, visible: bool = True, child_items: Optional[Item] = None):
-        super().__init__(rect, visible)
+    def __init__(self, name: str, rect: Rect, visible: bool = True, child_items: Optional[List[Item]] = None):
+        super().__init__(name, rect, visible)
         self.child_items: List[Item] = child_items if child_items is not None else []
         self.scroll_position = 0
 
@@ -55,6 +79,17 @@ class ItemContainer(Item):
             item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
             if item.rect.collidepoint(rel_mouse_position):
                 item.handle_event(event, item_rel_mouse_position)
+
+    def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        """
+        Function that a subclass can overwrite to handle given events. Every event is reaching this position.
+
+        :param event: The pygame event to handle
+        :param rel_mouse_position: The mouse position relative to this element as (x, y).
+        """
+        for item in self.child_items:
+            item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
+            item.handle_every_event(event, item_rel_mouse_position)
 
     def render(self, surface: Surface):
         """
@@ -80,21 +115,60 @@ class ItemContainer(Item):
     def add_child(self, child: Item):
         self.child_items.append(child)
 
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: ItemContainer
+        """
+        super().update_from(other)
+        self.scroll_position = other.scroll_position
+        for child in self.child_items:
+            for other_child in other.child_items:
+                if child.name == other_child.name:
+                    child.update_from(other_child)
+
 
 class Container(ItemContainer):
-    def __init__(self, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True, child_items: Optional[Item] = None):
-        super().__init__(rect, visible, child_items)
+    def __init__(self, name: str, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True, child_items: Optional[List[Item]] = None):
+        super().__init__(name, rect, visible, child_items)
         self.color = color if color is not None else gray(42)
 
     def render(self, surface: Surface):
         pg.draw.rect(surface, self.color, self.rect)
         self.render_child_items(surface)
 
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: Container
+        """
+        super().update_from(other)
+
+class RootContainer(ItemContainer):
+    def __init__(self):
+        super().__init__('root', Rect(0, 0, 0, 0))
+
+    def render(self, surface: Surface):
+        self.rect.width = surface.get_width()
+        self.rect.height = surface.get_height()
+        self.render_child_items(surface)
+
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: RootContainer
+        """
+        super().update_from(other)
+
 
 class Label(Item):
-    def __init__(self, position: Union[np.ndarray or Tuple[int, int]], text: str, fontsize: int = 18, text_color: pg.Color = None, font_name: str = '', visible: bool = True):
+    def __init__(self, name: str, position: Union[np.ndarray or Tuple[int, int]], text: str, fontsize: int = 18, text_color: pg.Color = None, font_name: str = '', visible: bool = True):
         """
         Initiate a new item.
+        :param name: The name of this item
         :param position: The position where the label should be located (x, y).
         :param text: The text to display
         :param fontsize: The size of the font to draw
@@ -103,7 +177,7 @@ class Label(Item):
         :param visible: Whether this element should be visible or not.
         """
         # The width and height of the rect will be determined automatically, when the font is rendered.
-        super().__init__(Rect(position[0], position[1], 1, 1), visible)
+        super().__init__(name, Rect(position[0], position[1], 1, 1), visible)
         self.text = text
         self.fontsize = fontsize
         self.text_color = text_color if text_color is not None else gray(220)
@@ -117,7 +191,7 @@ class Label(Item):
         Do not handle events.
         """
         if event.type == pg.MOUSEBUTTONDOWN:
-            print('label clicked!')
+            self.on_click()
 
     def render_font(self):
         if self.rendered_font:
@@ -130,27 +204,51 @@ class Label(Item):
         self.render_font()
         surface.blit(self.rendered_font, self.rect)
 
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: Label
+        """
+        super().update_from(other)
+        if self.text != other.text or self.fontsize != other.fontsize or self.text_color != other.text_color or self.font_name != other.font_name:
+            self.font = pg.font.Font(self.font_name, self.fontsize)
+            self.rendered_font = None
+            self.render_font()
+        else:
+            self.font = other.font
+            self.rendered_font = other.rendered_font
+
 
 class Image(Item):
-    def __init__(self, rect: Union[Rect, np.ndarray, Tuple[int, int]], image: Surface):
+    def __init__(self, name: str, rect: Union[Rect, np.ndarray, Tuple[int, int]], image: Surface):
         """
         Creates an image object, that can be used as menu item.
 
+        :param name: The name of the item
         :param rect: The rect where the image should be located. If only a position is supplied the width and height
                      will be determined by the width and height of the supplied image.
         :param image: The image to draw
         """
         if not isinstance(rect, Rect):
             rect = Rect(rect[0], rect[1], image.get_width(), image.get_height())
-        super().__init__(rect)
+        super().__init__(name, rect)
         self.image = image
 
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         if event.type == pg.MOUSEBUTTONDOWN:
-            print('image clicked!')
+            self.on_click()
 
     def render(self, surface: Surface):
         surface.blit(self.image, self.rect)
+
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: Image
+        """
+        super().update_from(other)
 
 
 class Button(Item):
@@ -169,7 +267,25 @@ class Button(Item):
         pg.draw.rect(menu_image, pg.Color(20, 20, 20), Rect(d, d*5-3, 40-2*d, d-2), border_radius=2)
         return menu_image
 
-    def __init__(self, rect: Union[Rect, np.ndarray, Tuple[int, int]], color: Optional[pg.Color] = None,
+    @staticmethod
+    def create_plus_image():
+        rect = pg.Rect(0, 0, 25, 25)
+        image = pg.Surface((rect.width, rect.height))
+
+        # background
+        pg.draw.rect(image, gray(100), rect, border_radius=4)
+
+        # horizontal line
+        horizontal_rect = pg.Rect(rect.left + 4, rect.top + 11, rect.width - 8, 3)
+        pg.draw.rect(image, gray(30), horizontal_rect, border_radius=2)
+
+        # vertical line
+        vertical_rect = pg.Rect(rect.left + 11, rect.top + 4, 3, rect.height - 8)
+        pg.draw.rect(image, gray(30), vertical_rect, border_radius=2)
+
+        return image
+
+    def __init__(self, name: str, rect: Union[Rect, np.ndarray, Tuple[int, int]], color: Optional[pg.Color] = None,
                  label: Union[None, Label, Image] = None, visible: bool = True):
         """
         Initiate a new item.
@@ -203,7 +319,7 @@ class Button(Item):
                 raise ValueError('Failed to determine Button height from label.')
 
         # setup
-        super().__init__(rect, visible)
+        super().__init__(name, rect, visible)
         self.color = color if color is not None else gray(80)
         self.label = label
 
@@ -212,10 +328,144 @@ class Button(Item):
         Do not handle events.
         """
         if event.type == pg.MOUSEBUTTONDOWN:
-            print('button clicked!')
+            self.on_click()
 
     def render(self, surface: Surface):
         pg.draw.rect(surface, self.color, self.rect)
         if self.label:
             sub_surface = surface.subsurface(self.rect)
             self.label.render(sub_surface)
+
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: Button
+        """
+        super().update_from(other)
+        self.label.update_from(other.label)
+
+
+class VectorItem(ItemContainer):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_vec: Vector, fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
+        """
+        Creates a new VectorItem that can be used to render a vector ui element.
+        :param name: The name of the item
+        :param position: The position where this item should be placed, relative to the containing element. The width and height are determined automatically.
+        :param associated_vec: The vector this ui element represents
+        :param fontsize: The fontsize to use
+        :param text_color: The text color to use
+        :param font_name: The font to use
+        """
+        rect = Rect(position[0], position[1], 120, 55)
+        super().__init__(name, rect)
+        self.associated_vec: Vector = associated_vec
+        self.fontsize = fontsize
+        self.text_color = text_color if text_color is not None else gray(220)
+        self.font_name = font_name if font_name else pg.font.get_default_font()
+        self.font: pg.font.Font = pg.font.Font(self.font_name, self.fontsize)
+
+        name_label = Label(self.name + '_name_label', (10, 20), self.associated_vec.name)
+        self.add_child(name_label)
+        self.number_label_1 = Label(self.name + '_label_1', (50, 10), format_float(self.associated_vec.coordinates[0]))
+        self.add_child(self.number_label_1)
+        self.number_label_2 = Label(self.name + '_label_2', (50, 30), format_float(self.associated_vec.coordinates[1]))
+        self.add_child(self.number_label_2)
+
+        self.label_1_dragged = False
+        self.label_2_dragged = False
+
+    def render(self, surface: Surface):
+        self.render_child_items(surface)
+
+    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        super().handle_event(event, rel_mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            if self.number_label_1.rect.collidepoint(rel_mouse_position):
+                self.label_1_dragged = True
+            if self.number_label_2.rect.collidepoint(rel_mouse_position):
+                self.label_2_dragged = True
+
+    def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        if event.type == pg.MOUSEBUTTONUP and event.button == 1:
+            self.label_1_dragged = False
+            self.label_2_dragged = False
+        elif event.type == pg.MOUSEMOTION:
+            if self.label_1_dragged:
+                self.associated_vec.coordinates[0] -= event.rel[1] * 0.01
+            if self.label_2_dragged:
+                self.associated_vec.coordinates[1] -= event.rel[1] * 0.01
+
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: VectorItem
+        """
+        super().update_from(other)
+        self.label_1_dragged = other.label_1_dragged
+        self.label_2_dragged = other.label_2_dragged
+
+
+class TransformItem(ItemContainer):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_transform: Union[Transform2D, Transform3D], fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
+        """
+        Creates a new VectorItem that can be used to render a vector ui element.
+        :param name: The name of the item
+        :param position: The position where this item should be placed, relative to the containing element. The width and height are determined automatically.
+        :param associated_transform: The vector this ui element represents
+        :param fontsize: The fontsize to use
+        :param text_color: The text color to use
+        :param font_name: The font to use
+        """
+        width = 160 if isinstance(associated_transform, Transform2D) else 205
+        height = 55 if isinstance(associated_transform, Transform2D) else 75
+        rect = Rect(position[0], position[1], width, height)
+        super().__init__(name, rect)
+        self.associated_transform: Union[Transform2D, Transform3D] = associated_transform
+        self.fontsize = fontsize
+        self.text_color = text_color if text_color is not None else gray(220)
+        self.font_name = font_name if font_name else pg.font.get_default_font()
+        self.font: pg.font.Font = pg.font.Font(self.font_name, self.fontsize)
+
+        name_label = Label(self.name + '_name_label', (10, 20), self.associated_transform.name)
+        self.add_child(name_label)
+
+        # add number labels
+        self.number_labels = []
+        for y in range(self.associated_transform.matrix.shape[0]):
+            line_of_labels = []
+            for x in range(self.associated_transform.matrix.shape[1]):
+                number_label = Label(self.name + '_label_1', (50 + 50*x, 10 + 20*y), format_float(self.associated_transform.matrix[y, x]))
+                line_of_labels.append(number_label)
+                self.add_child(number_label)
+            self.number_labels.append(line_of_labels)
+
+        self.dragged_label_index = None
+
+    def render(self, surface: Surface):
+        self.render_child_items(surface)
+
+    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        super().handle_event(event, rel_mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            for y in range(self.associated_transform.matrix.shape[0]):
+                for x in range(self.associated_transform.matrix.shape[1]):
+                    if self.number_labels[y][x].rect.collidepoint(rel_mouse_position):
+                        self.dragged_label_index = (y, x)
+
+    def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        if event.type == pg.MOUSEBUTTONUP and event.button == 1:
+            self.dragged_label_index = None
+        elif event.type == pg.MOUSEMOTION:
+            if self.dragged_label_index:
+                self.associated_transform.matrix[self.dragged_label_index] -= event.rel[1] * 0.01
+
+    def update_from(self, other):
+        """
+        Update values from other to myself. Should be overwritten by subclasses.
+        :param other: The other item to transfer values from
+        :type other: TransformItem
+        """
+        super().update_from(other)
+        self.dragged_label_index = other.dragged_label_index

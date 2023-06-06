@@ -3,63 +3,64 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pygame as pg
+from pygame import Surface, Rect
 
 from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D
-from user_interface.items import Container, Label, Button, Image
+from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem
 from utils import gray
 
 
 class UserInterface:
     def __init__(self):
+        self.root = RootContainer()
         self.showing = False
-        self.menu_rect = pg.Rect(10, 10, 40, 40)
-        self.menu_image = self._create_menu_image()
+        self.menu_rect = Rect(10, 10, 40, 40)
 
         self.ui_elements: List[UIElement] = []
-        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
+        self.ui_rect = Rect(0, 0, 400, pg.display.get_window_size()[1])
 
         self.scroll_position = 0
+        self.item_y_position = 0
 
-        self.item_container = Container(pg.Rect(100, 200, 400, 400), color=gray(50))
-        self.item_container.add_child(Label((20, 20), 'Hello World'))
-        self.item_container.add_child(Button((20, 60), label=Label((-1, -1), 'Click me again')))
-        self.item_container.add_child(Button((20, 100), label=Image((0, 0), Button.create_menu_image())))
-
-    def _create_menu_image(self):
-        menu_image = pg.Surface((self.menu_rect.width,  self.menu_rect.height))
-        menu_image.fill(pg.Color(0, 0, 0))
-        d = 40 // 6
-        pg.draw.rect(
-            menu_image, pg.Color(140, 140, 140), pg.Rect(0, 0, self.menu_rect.width, self.menu_rect.height),
-            border_radius=4
-        )
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), pg.Rect(d, d+3, 40-2*d, d-2), border_radius=2)
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), pg.Rect(d, d*3, 40-2*d, d-2), border_radius=2)
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), pg.Rect(d, d*5-3, 40-2*d, d-2), border_radius=2)
-        return menu_image
+    def render(self, screen: Surface):
+        self.root.render(screen)
 
     def toggle(self):
         self.showing = not self.showing
 
     def handle_event(self, event: pg.event.Event, mouse_position: np.ndarray):
-        rel_mouse_position = mouse_position - np.array([self.item_container.rect.left, self.item_container.rect.top])
-        self.item_container.handle_event(event, rel_mouse_position)
+        self.root.handle_event(event, mouse_position)
+        self.root.handle_every_event(event, mouse_position)
 
     def recreate_ui_elements(self, element_buffer: ElementBuffer):
-        self.ui_rect = pg.Rect(0, 0, 400, pg.display.get_window_size()[1])
+        new_root = RootContainer()
+        item_container = Container('item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False)
+        new_root.add_child(item_container)
+
+        self.item_y_position = 0
+        self.add_objects_section(item_container, element_buffer)
+        self.add_transforms_section(item_container, element_buffer)
+        self.add_menu_button(new_root, item_container)
+
+        # update from old root
+        new_root.update_from(self.root)
+        self.root = new_root
+
+        return
+        self.ui_rect = Rect(0, 0, 400, pg.display.get_window_size()[1])
 
         self.ui_elements = []
         element_y_pos = 60 - self.scroll_position
 
         # Object title
-        objects_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Objects')
+        objects_title = UIText(Rect(10, element_y_pos, 120, 20), 'Objects')
         self.ui_elements.append(objects_title)
 
-        vector_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_VECTOR,
+        vector_add_button = UIButton(Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_VECTOR,
                                      sign=UIButton.Sign.PLUS)
         self.ui_elements.append(vector_add_button)
 
-        unit_circle_add_button = UIButton(pg.Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_UNIT_CIRCLE,
+        unit_circle_add_button = UIButton(Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_UNIT_CIRCLE,
                                           sign=UIButton.Sign.PLUS)
         self.ui_elements.append(unit_circle_add_button)
         element_y_pos += 25
@@ -67,28 +68,28 @@ class UserInterface:
         # Objects
         for element in element_buffer:
             if isinstance(element, Vector):
-                rect = pg.Rect(20, element_y_pos, 180, 20)
+                rect = Rect(20, element_y_pos, 180, 20)
                 ui_element = UIVector(rect, element)
                 self.ui_elements.append(ui_element)
             elif isinstance(element, UnitCircle):
-                rect = pg.Rect(20, element_y_pos, 180, 20)
+                rect = Rect(20, element_y_pos, 180, 20)
                 ui_element = UIUnitCircle(rect, element)
                 self.ui_elements.append(ui_element)
             element_y_pos += 25
 
         # Transforms Title
         element_y_pos += 10
-        transforms_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Transforms')
+        transforms_title = UIText(Rect(10, element_y_pos, 120, 20), 'Transforms')
         self.ui_elements.append(transforms_title)
 
         # Add Button
         transform2d_add_button = UIButton(
-            pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM2D, sign=UIButton.Sign.PLUS
+            Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM2D, sign=UIButton.Sign.PLUS
         )
         self.ui_elements.append(transform2d_add_button)
 
         transform3d_add_button = UIButton(
-            pg.Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM3D, sign=UIButton.Sign.PLUS
+            Rect(160, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORM3D, sign=UIButton.Sign.PLUS
         )
         self.ui_elements.append(transform3d_add_button)
 
@@ -97,7 +98,7 @@ class UserInterface:
         # Transform Objects
         for transform in element_buffer.transforms:
             height = 50 if isinstance(transform, Transform2D) else 70
-            rect = pg.Rect(20, element_y_pos, 180, height)
+            rect = Rect(20, element_y_pos, 180, height)
 
             if isinstance(transform, Transform2D):
                 transform_element = UITransform2D(rect, transform)
@@ -110,26 +111,109 @@ class UserInterface:
 
         # Transformed Title
         element_y_pos += 10
-        transformed_title = UIText(pg.Rect(10, element_y_pos, 120, 20), 'Transformed')
+        transformed_title = UIText(Rect(10, element_y_pos, 120, 20), 'Transformed')
         self.ui_elements.append(transformed_title)
 
         # Add Button
-        transformed_add_button = UIButton(pg.Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
+        transformed_add_button = UIButton(Rect(130, element_y_pos-4, 25, 25), action=ActionType.ADD_TRANSFORMED,
                                           sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transformed_add_button)
 
         # Add Button - Custom Transformed
-        transformed_add_button = UIButton(pg.Rect(160, element_y_pos-4, 25, 25),
+        transformed_add_button = UIButton(Rect(160, element_y_pos-4, 25, 25),
                                           action=ActionType.ADD_CUSTOM_TRANSFORMED, sign=UIButton.Sign.PLUS)
         self.ui_elements.append(transformed_add_button)
         element_y_pos += 30
 
         # Transformed Objects
         for transform in element_buffer.transformed:
-            rect = pg.Rect(20, element_y_pos, 240, 20)
+            rect = Rect(20, element_y_pos, 240, 20)
             transform_element = UITransformed(rect, transform)
             self.ui_elements.append(transform_element)
             element_y_pos += 25
+
+    @staticmethod
+    def add_menu_button(new_root, item_container):
+        menu_button = Button('menu_button', (10, 10),
+                             label=Image('menu_button_label', (0, 0), Button.create_menu_image()))
+
+        def menu_button_on_click():
+            item_container.visible = not item_container.visible
+
+        menu_button.on_click = menu_button_on_click
+        new_root.add_child(menu_button)
+
+    def add_objects_section(self, item_container, element_buffer: ElementBuffer):
+        objects_label = Label('objects_label', (10, 60), 'Objects')
+        item_container.add_child(objects_label)
+
+        # add vec button
+        add_vec_button = Button(
+            'add_vec_btn', (objects_label.rect.width + 20, 58),
+            label=Image('add_vec_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_vec():
+            num_elements = len(element_buffer.elements) + 1
+            element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1.0, 0.0])))
+        add_vec_button.on_click = add_vec
+        item_container.add_child(add_vec_button)
+
+        # add circle button
+        add_circle_button = Button(
+            'add_circle_btn', (objects_label.rect.width + 50, 58),
+            label=Image('add_circle_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_circle():
+            num_elements = len(element_buffer.elements) + 1
+            element_buffer.elements.append(UnitCircle('u{}'.format(num_elements)))
+        add_circle_button.on_click = add_circle
+        item_container.add_child(add_circle_button)
+
+        # add object elements
+        self.item_y_position = 90
+        for element in element_buffer.elements:
+            if isinstance(element, Vector):
+                vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element)
+                item_container.add_child(vector_item)
+                self.item_y_position += vector_item.rect.height + 1
+            elif isinstance(element, UnitCircle):
+                object_item = Label(element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle')
+                item_container.add_child(object_item)
+                self.item_y_position += object_item.rect.height + 1
+
+    def add_transforms_section(self, item_container, element_buffer: ElementBuffer):
+        self.item_y_position += 10
+        transforms_label = Label('transforms_label', (10, self.item_y_position), 'Transforms')
+        item_container.add_child(transforms_label)
+
+        # add 2d transform button
+        add_2d_transform_button = Button(
+            'add_2d_transform_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
+            label=Image('add_2d_transform_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_2d_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
+        add_2d_transform_button.on_click = add_2d_transform
+        item_container.add_child(add_2d_transform_button)
+
+        # add 3d transform button
+        add_3d_transform_button = Button(
+            'add_3d_transform_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
+            label=Image('add_3d_transform_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_3d_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
+        add_3d_transform_button.on_click = add_3d_transform
+        item_container.add_child(add_3d_transform_button)
+
+        self.item_y_position += transforms_label.rect.height + 10
+
+        for transform in element_buffer.transforms:
+            transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
+            item_container.add_child(transform_item)
+            self.item_y_position += transform_item.rect.height + 1
 
 
 @enum.unique
@@ -153,7 +237,7 @@ class Action:
 
 class UIElement:
     def __init__(self, rect):
-        self.rect: pg.Rect = rect
+        self.rect: Rect = rect
 
     def on_click(self, mouse_position) -> Optional[Action]:
         return None

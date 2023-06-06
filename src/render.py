@@ -104,7 +104,7 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
 def draw_user_interface(screen: Surface, user_interface: UserInterface, controller: Controller,
                         render_font: pg.font.Font):
-    if user_interface.showing:
+    if user_interface.showing and False:
         pg.draw.rect(screen, Color(40, 40, 40), user_interface.ui_rect)
 
         for ui_element in user_interface.ui_elements:
@@ -188,15 +188,10 @@ def draw_user_interface(screen: Surface, user_interface: UserInterface, controll
                     font = render_font.render(text, True, pg.Color(brightness, brightness, brightness))
                     screen.blit(font, ui_element.rect)
 
-    # draw menu rect
-    alpha = 210 if user_interface.menu_rect.collidepoint(controller.mouse_position) else 180
-    user_interface.menu_image.set_alpha(alpha)
-    screen.blit(user_interface.menu_image, user_interface.menu_rect)
+    user_interface.render(screen)
 
     if controller.get_definition_for is not None:
         draw_text_input(screen, controller, render_font)
-
-    user_interface.item_container.render(screen)
 
 
 def draw_text_input(screen: Surface, controller: Controller, render_font):
