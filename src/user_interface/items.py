@@ -291,7 +291,7 @@ class Button(Item):
         Initiate a new item.
         :param rect: The rect of this item, relative to the containing element. If width or height is set to zero or if
                      only a position is supplied, the width and height are determined by the label. If label is not
-                     supplied, an error is raised.
+                     supplied, there will be an error.
         :param color: The background color of the button.
         :param label: The label to display. Will be centered on the button
         :param visible: Whether this element should be visible or not.
