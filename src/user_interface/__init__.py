@@ -22,7 +22,7 @@ class UserInterface:
 
         self.item_container = Container(pg.Rect(100, 200, 400, 400), color=gray(50))
         self.item_container.add_child(Label((20, 20), 'Hello World'))
-        self.item_container.add_child(Button(pg.Rect(20, 60, 100, 30), label=Label((10, 3), 'Click me')))
+        self.item_container.add_child(Button((20, 60), label=Label((-1, -1), 'Click me again')))
         self.item_container.add_child(Button((20, 100), label=Image((0, 0), Button.create_menu_image())))
 
     def _create_menu_image(self):

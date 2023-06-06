@@ -184,15 +184,25 @@ class Button(Item):
         if not isinstance(rect, Rect):
             rect = Rect(rect[0], rect[1], 0, 0)
         if rect.width == 0:
-            if isinstance(label, Image) or isinstance(label, Label):
+            if isinstance(label, Image):
                 rect.width = label.rect.width
+            elif isinstance(label, Label):
+                rect.width = label.rect.width + 20
+                if label.rect.left == -1:
+                    label.rect.left = 10
             else:
                 raise ValueError('Failed to determine Button width from label.')
         if rect.height == 0:
-            if isinstance(label, Image) or isinstance(label, Label):
+            if isinstance(label, Image):
                 rect.height = label.rect.height
+            elif isinstance(label, Label):
+                rect.height = label.rect.height + 20
+                if label.rect.top == -1:
+                    label.rect.top = 10
             else:
                 raise ValueError('Failed to determine Button height from label.')
+
+        # setup
         super().__init__(rect, visible)
         self.color = color if color is not None else gray(80)
         self.label = label
