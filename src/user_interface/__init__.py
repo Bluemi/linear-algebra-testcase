@@ -5,7 +5,8 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D
+from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D, \
+    RenderKind
 from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem
 from utils import gray
 
@@ -40,6 +41,7 @@ class UserInterface:
         self.item_y_position = 0
         self.add_objects_section(item_container, element_buffer)
         self.add_transforms_section(item_container, element_buffer)
+        self.add_transformed_section(item_container, element_buffer)
         self.add_menu_button(new_root, item_container)
 
         # update from old root
@@ -214,6 +216,59 @@ class UserInterface:
             transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
             item_container.add_child(transform_item)
             self.item_y_position += transform_item.rect.height + 1
+
+    def add_transformed_section(self, item_container, element_buffer: ElementBuffer):
+        self.item_y_position += 10
+        transformed_label = Label('transformed_label', (10, self.item_y_position), 'Transformed')
+        item_container.add_child(transformed_label)
+
+        # add transformed button
+        add_transformed_button = Button(
+            'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
+            label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_transformed():
+            num_transformed = len(element_buffer.transformed) + 1
+            element_buffer.transformed.append(
+                Transformed('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
+            )
+        add_transformed_button.on_click = add_transformed
+        item_container.add_child(add_transformed_button)
+
+        # add custom transformed button
+        add_custom_transformed_button = Button(
+            'add_custom_transform_btn', (transformed_label.rect.width + 50, self.item_y_position - 2),
+            label=Image('add_custom_transform_btn_label', (0, 0), Button.create_plus_image())
+        )
+        def add_custom_transformed():
+            num_transformed = len(element_buffer.transformed) + 1
+            element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE))
+        add_custom_transformed_button.on_click = add_custom_transformed
+        item_container.add_child(add_custom_transformed_button)
+
+        self.item_y_position += transformed_label.rect.height + 10
+
+        for transformed in element_buffer.transformed:
+            if isinstance(transformed, Transformed):
+                transform_str = transformed.transform.name if transformed.transform is not None else '< >'
+                element_str = transformed.element.name if transformed.element is not None else '< >'
+                transformed_item = Label(
+                    transformed.name + '_ui', (10, self.item_y_position),
+                    '{} = {} @ {}'.format(transformed.name, transform_str, element_str)
+                )
+                item_container.add_child(transformed_item)
+                self.item_y_position += transformed_item.rect.height + 1
+            elif isinstance(transformed, CustomTransformed):
+                text = transformed.name
+                if transformed.definition:
+                    text += ' = ' + transformed.definition
+                    if transformed.error:
+                        text += ' [Err]:' + transformed.error
+                else:
+                    text += ' = < >'
+                transformed_item = Label(transformed.name + '_ui', (10, self.item_y_position), text)
+                item_container.add_child(transformed_item)
+                self.item_y_position += transformed_item.rect.height + 1
 
 
 @enum.unique
