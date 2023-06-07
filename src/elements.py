@@ -45,17 +45,22 @@ class Element:
         return
 
     @abc.abstractmethod
-    def get_array(self):
-        return
+    def get_array(self) -> np.ndarray:
+        """
+        Returns the underlying matrix object as np.ndarray.
+        Vectors should be of shape (2, 1), Elements with N elements of shape (2, N) to enable matrix multiplication with
+        a 2x2 matrix in the form (matrix @ element.get_array()).
+        """
+        pass
 
 
 class Vector(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
-        self.coordinates = coordinates
+        self.coordinates = coordinates.reshape((2, 1))
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        pos = coordinate_system.transform(self.coordinates)
+        pos = coordinate_system.transform(self.get_array()).flatten()
         diff = np.sum((mouse_position - pos)**2)
         return diff < 100
 
@@ -66,26 +71,32 @@ class Vector(Element):
         return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
 
     def get_array(self):
-        return self.coordinates
+        return self.coordinates.reshape((2, 1))
 
 
-class UnitCircle(Element):
+class MultiVectorObject(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.POINT, num_points=40):
         super().__init__(name, render_kind)
         self.num_points = num_points
+        self.coordinates = self.generate_unit_circle(num_points)
+
+    @staticmethod
+    def generate_unit_circle(num_points, include_center=True):
         space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
-        coordinates = np.stack([np.cos(space), np.sin(space)], axis=1)
-        self.coordinates = np.vstack([coordinates, [0, 0]])  # add zero point
+        coordinates = np.vstack([np.cos(space), np.sin(space)])
+        if include_center:
+            coordinates = np.hstack([coordinates, [[0], [0]]])  # add center
+        return coordinates.T
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        pos = coordinate_system.transform(self.coordinates)
+        pos = coordinate_system.transform(self.get_array()).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
         return np.any(diff < 100)
 
     def move_to(self, mouse_position: np.ndarray):
         mouse_position = snap(mouse_position)
-        space = np.linspace(0, np.pi * 2, num=self.num_points, endpoint=False)
-        self.coordinates = np.stack([np.cos(space) * mouse_position[0], np.sin(space) * mouse_position[1]], axis=1)
+        self.coordinates = self.generate_unit_circle(self.num_points)
+        self.coordinates *= mouse_position
 
     def get_array(self):
         return self.coordinates.T
@@ -122,7 +133,7 @@ class Transform3D(Element):
 
 
 class Transformed(Element):
-    def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform2D],
+    def __init__(self, name: str, element: Union[None, Vector, MultiVectorObject], transform: Optional[Transform2D],
                  render_kind: RenderKind):
         super().__init__(name, render_kind)
         self.element = element
@@ -130,11 +141,14 @@ class Transformed(Element):
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
-            return (self.transform.get_array() @ self.element.coordinates.T).T
+            return self.transform.get_array() @ self.element.get_array()
         return None
 
     def get_array(self):
-        return self.get_position()
+        position = self.get_position()
+        if position is not None:
+            return position.T
+        return None
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return False

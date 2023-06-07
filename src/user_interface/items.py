@@ -367,9 +367,9 @@ class VectorItem(ItemContainer):
 
         name_label = Label(self.name + '_name_label', (10, 20), self.associated_vec.name)
         self.add_child(name_label)
-        self.number_label_1 = Label(self.name + '_label_1', (50, 10), format_float(self.associated_vec.coordinates[0]))
+        self.number_label_1 = Label(self.name + '_label_1', (50, 10), format_float(self.associated_vec.get_array()[0, 0]))
         self.add_child(self.number_label_1)
-        self.number_label_2 = Label(self.name + '_label_2', (50, 30), format_float(self.associated_vec.coordinates[1]))
+        self.number_label_2 = Label(self.name + '_label_2', (50, 30), format_float(self.associated_vec.get_array()[1, 0]))
         self.add_child(self.number_label_2)
 
         self.label_1_dragged = False
@@ -438,10 +438,10 @@ class TransformItem(ItemContainer):
 
         # add number labels
         self.number_labels = []
-        for y in range(self.associated_transform.matrix.shape[0]):
+        for y in range(self.associated_transform.get_array().shape[0]):
             line_of_labels = []
-            for x in range(self.associated_transform.matrix.shape[1]):
-                number_label = Label(self.name + '_label_1', (50 + 50*x, 10 + 20*y), format_float(self.associated_transform.matrix[y, x]))
+            for x in range(self.associated_transform.get_array().shape[1]):
+                number_label = Label(self.name + '_label_1', (50 + 50*x, 10 + 20*y), format_float(self.associated_transform.get_array()[y, x]))
                 line_of_labels.append(number_label)
                 self.add_child(number_label)
             self.number_labels.append(line_of_labels)

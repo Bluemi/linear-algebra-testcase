@@ -21,24 +21,24 @@ class CoordinateSystem:
     def zoom_out(self):
         scale = 1 / 1.2
         scale_mat = create_affine_transformation(scale=scale)
-        self.coord = scale_mat @ self.coord
+        self.coord = self.coord @ scale_mat
 
     def zoom_in(self):
         scale = 1.2
         scale_mat = create_affine_transformation(scale=scale)
-        self.coord = scale_mat @ self.coord
+        self.coord = self.coord @ scale_mat
 
     def translate(self, direction):
         direction *= np.array([1, -1])
         translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
-        self.coord = translation_mat @ self.coord
+        self.coord = self.coord @ translation_mat
 
     def transform(self, mat: np.ndarray):
         """
         Transform the given matrix with the internal coordinates.
 
-        :param mat: A list of column vectors with shape [N, 2] or [2,].
-        :return: A list of column vectors with shape [N, 2] or [2,].
+        :param mat: A list of column vectors with shape [2, N]. For vectors shape should be [2, 1].
+        :return: A list of column vectors with shape [2, N].
         """
         return transform(self.coord, mat)
 
@@ -47,16 +47,37 @@ class CoordinateSystem:
         return transform(inv, mat)
 
 
-def transform(transform_matrix, mat):
+def transform(transform_matrix: np.ndarray, mat: np.ndarray):
+    """
+    Transforms a given matrix with the given transformation matrix.
+    Transformation matrix should be of shape [2, 2] or [3, 3]. If transformation matrix is of shape [3, 3] and the
+    matrix to transform is of shape [2, N], matrix will be padded with ones to shape [3, N].
+    If mat is of shape [2,] it will be converted to [2, 1].
+
+    The calculation will be transform_matrix @ mat.
+
+    :param transform_matrix: A np.ndarray with shape [2, 2] or [3, 3].
+    :param mat: The matrix to convert of shape [2, N]. If mat is of shape [2,] it will be converted to [2, 1].
+    :return:
+    """
     expanded = False
-    if len(mat.shape) == 1:
+    if mat.shape == (2,):
+        mat = mat.reshape((2, 1))
         expanded = True
-        mat = np.expand_dims(mat, axis=0)
-    result = np.concatenate([mat, np.ones((mat.shape[0], 1))], axis=1) @ transform_matrix
+
+    padded = False
+    if transform_matrix.shape == (3, 3):
+        mat = np.concatenate([mat, np.ones((1, mat.shape[1]))], axis=0)
+        padded = True
+
+    result = transform_matrix @ mat
+
     if expanded:
-        return result[0, :-1]
-    else:
-        return result[:, :-1]
+        result = result[:, 0]
+
+    if padded:
+        return result[:-1]
+    return result
 
 
 def test_single_dimension():
@@ -64,8 +85,8 @@ def test_single_dimension():
 
     line_coords1 = np.array([100, -100])
     line_coords2 = np.array([-100, 100])
-    line_coords1 = coordinate_system.transform(line_coords1.T)
-    line_coords2 = coordinate_system.transform(line_coords2.T)
+    line_coords1 = coordinate_system.transform(line_coords1)
+    line_coords2 = coordinate_system.transform(line_coords2)
     assert tuple(line_coords1.shape) == (2,), line_coords1.shape
     assert tuple(line_coords2.shape) == (2,), line_coords2.shape
 
@@ -73,6 +94,6 @@ def test_single_dimension():
 def test_multi_dimension():
     coordinate_system = CoordinateSystem()
 
-    line_coords = np.array([[-100, -100], [100, 100], [200, 200]])
+    line_coords = np.array([[-100, -100], [100, 100], [200, 200]]).T
     line_coords = coordinate_system.transform(line_coords)
-    assert tuple(line_coords.shape) == (3, 2)
+    assert line_coords.shape == (2, 3)

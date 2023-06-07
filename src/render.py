@@ -5,8 +5,8 @@ import pygame as pg
 from pygame import Surface, Color
 
 from controller import Controller
-from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_f
-from elements import ElementBuffer, Vector, Transformed, UnitCircle, CustomTransformed, RenderKind
+from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_helper
+from elements import ElementBuffer, Vector, Transformed, MultiVectorObject, CustomTransformed, RenderKind
 from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
@@ -48,8 +48,8 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
     extreme_points = np.array([
         [0, 0],
         [screen.get_width(), screen.get_height()]
-    ])
-    extreme_points = coordinate_system.transform_inverse(extreme_points)
+    ]).T
+    extreme_points = coordinate_system.transform_inverse(extreme_points).T
     target_num_points = TARGET_NUM_POINTS * screen.get_width() // DEFAULT_SCREEN_SIZE[0]
     target_dividend = (extreme_points[1, 0] - extreme_points[0, 0]) / target_num_points
     # extreme_points = np.trunc(extreme_points).astype(int)
@@ -59,7 +59,7 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
     x_points = np.arange(x_minimum, x_maximum + dividend, dividend)
     for x in x_points:
         vertical_lines = np.array([[x, 0], [x, 0]])
-        transformed_vertical_lines = coordinate_system.transform(vertical_lines)
+        transformed_vertical_lines = coordinate_system.transform(vertical_lines.T).T
         transformed_vertical_lines[:, 1] = [0, screen.get_height()]
         color = Color(30, 30, 30)
         if x == 0:
@@ -72,7 +72,7 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
 
     for y in y_points:
         horizontal_lines = np.array([[extreme_points[0, 0], y], [extreme_points[1, 0], y]])
-        transformed_horizontal_lines = coordinate_system.transform(horizontal_lines)
+        transformed_horizontal_lines = coordinate_system.transform(horizontal_lines.T).T
         transformed_horizontal_lines[:, 0] = [0, screen.get_width()]
         color = Color(30, 30, 30)
         if y == 0:
@@ -125,15 +125,15 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
 
     for element in element_buffer.elements:
         if isinstance(element, Vector):
-            transformed_vec = coordinate_system.transform(element.coordinates)
+            transformed_vec = coordinate_system.transform(element.get_array())
             width = 3 if element.hovered else 1
             if element.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, GREEN, transformed_vec, width)
             elif element.render_kind == RenderKind.LINE:
                 pg.draw.line(screen, GREEN, zero_point, transformed_vec, width=width)
 
-        if isinstance(element, UnitCircle):
-            transformed_vec = coordinate_system.transform(element.coordinates)
+        if isinstance(element, MultiVectorObject):
+            transformed_vec = coordinate_system.transform(element.get_array()).T
             width = 4 if element.hovered else 3
             for point in transformed_vec:
                 if element.render_kind == RenderKind.POINT:
@@ -146,13 +146,13 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
             new_vec = element.get_position()
             if new_vec is not None:
                 if isinstance(element.element, Vector):
-                    transformed_vec = coordinate_system.transform(new_vec)
+                    transformed_vec = coordinate_system.transform(new_vec).flatten()
                     if element.render_kind == RenderKind.POINT:
                         pg.draw.circle(screen, RED, transformed_vec, 3)
                     elif element.render_kind == RenderKind.LINE:
                         pg.draw.line(screen, RED, zero_point, transformed_vec, width=1)
-                elif isinstance(element.element, UnitCircle):
-                    transformed_vec = coordinate_system.transform(new_vec)
+                elif isinstance(element.element, MultiVectorObject):
+                    transformed_vec = coordinate_system.transform(new_vec).T
                     for point in transformed_vec:
                         if element.render_kind == RenderKind.POINT:
                             pg.draw.circle(screen, RED, point, 3)
@@ -183,10 +183,8 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     element.last_result = result
                     if result.shape == (2,):
                         result = np.expand_dims(result, 0)
-                    if len(result.shape) == 2 and result.shape[0] == 2 and result.shape[1] != 2:
-                        result = result.T
-                    if result.shape[-1] == 2 and len(result.shape) == 2:
-                        transformed_vecs = coordinate_system.transform(result)
+                    if result.shape[0] == 2 and len(result.shape) == 2:
+                        transformed_vecs = coordinate_system.transform(result).T
                         # width = 3 if element.hovered else 1
                         for point in transformed_vecs:
                             if element.render_kind == RenderKind.POINT:
@@ -197,10 +195,6 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                         element.error = 'Invalid result shape: {}'.format(result.shape)
                 elif result is not None:
                     element.error = 'result is not numpy array'
-
-
-def transform_helper(transformation_matrix, mat):
-    return transform_f(transformation_matrix.T, mat.T).T
 
 
 def normalize_vec(vec):

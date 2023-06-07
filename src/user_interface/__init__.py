@@ -4,7 +4,7 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D, \
+from elements import Transform2D, ElementBuffer, Transformed, Vector, MultiVectorObject, CustomTransformed, Transform3D, \
     RenderKind
 from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem, \
     ElementLabel
@@ -81,7 +81,7 @@ class UserInterface:
 
         def add_circle():
             num_elements = len(element_buffer.elements) + 1
-            element_buffer.elements.append(UnitCircle('u{}'.format(num_elements)))
+            element_buffer.elements.append(MultiVectorObject('u{}'.format(num_elements)))
         add_circle_button.on_click = add_circle
         item_container.add_child(add_circle_button)
 
@@ -99,7 +99,7 @@ class UserInterface:
 
                 vector_item.on_click = set_vector_for_transformed
                 self.item_y_position += vector_item.rect.height + 1
-            elif isinstance(element, UnitCircle):
+            elif isinstance(element, MultiVectorObject):
                 object_item = ElementLabel(
                     element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
                 )
