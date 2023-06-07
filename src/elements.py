@@ -34,6 +34,7 @@ class Element:
         self.name = name
         self.hovered = False
         self.render_kind = render_kind
+        self.has_to_be_removed = False
 
     @abc.abstractmethod
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
@@ -90,31 +91,42 @@ class UnitCircle(Element):
         return self.coordinates.T
 
 
-class Transform2D:
-    def __init__(self, name: str):
-        self.name = name
+class Transform2D(Element):
+    def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
+        super().__init__(name, render_kind)
         self.matrix = np.eye(2)
 
     def get_array(self):
         return snap(self.matrix)
 
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return False
 
-class Transform3D:
-    def __init__(self, name: str):
-        self.name = name
+    def move_to(self, mouse_position: np.ndarray):
+        pass
+
+
+class Transform3D(Element):
+    def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
+        super().__init__(name, render_kind)
         self.matrix = np.eye(3)
 
     def get_array(self):
         return snap(self.matrix)
 
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return False
 
-class Transformed:
+    def move_to(self, mouse_position: np.ndarray):
+        pass
+
+
+class Transformed(Element):
     def __init__(self, name: str, element: Union[None, Vector, UnitCircle], transform: Optional[Transform2D],
                  render_kind: RenderKind):
-        self.name = name
+        super().__init__(name, render_kind)
         self.element = element
         self.transform = transform
-        self.render_kind = render_kind
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
@@ -124,11 +136,16 @@ class Transformed:
     def get_array(self):
         return self.get_position()
 
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return False
 
-class CustomTransformed:
+    def move_to(self, mouse_position: np.ndarray):
+        pass
+
+
+class CustomTransformed(Element):
     def __init__(self, name: str, render_kind: RenderKind):
-        self.name = name
-        self.render_kind = render_kind
+        super().__init__(name, render_kind)
         self.definition = ""
         self.compiled_definition = None
         self.error = None
@@ -150,6 +167,12 @@ class CustomTransformed:
     def get_array(self):
         return self.last_result
 
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return False
+
+    def move_to(self, mouse_position: np.ndarray):
+        pass
+
 
 class ElementBuffer:
     def __init__(self):
@@ -162,4 +185,8 @@ class ElementBuffer:
 
     def create_example_elements(self):
         self.elements.append(Vector('v1', np.array([1, 1])))
-        # self.elements.append(Vector(np.array([-1, 1])))
+
+    def remove_elements(self):
+        self.elements = [e for e in self.elements if not e.has_to_be_removed]
+        self.transforms = [t for t in self.transforms if not t.has_to_be_removed]
+        self.transformed = [t for t in self.transformed if not t.has_to_be_removed]

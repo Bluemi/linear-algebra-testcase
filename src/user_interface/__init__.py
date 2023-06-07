@@ -7,7 +7,7 @@ from pygame import Surface, Rect
 from elements import Transform2D, ElementBuffer, Transformed, Vector, UnitCircle, CustomTransformed, Transform3D, \
     RenderKind
 from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem, \
-    TransformedLabel
+    ElementLabel
 from utils import gray
 
 
@@ -100,7 +100,9 @@ class UserInterface:
                 vector_item.on_click = set_vector_for_transformed
                 self.item_y_position += vector_item.rect.height + 1
             elif isinstance(element, UnitCircle):
-                object_item = Label(element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle')
+                object_item = ElementLabel(
+                    element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
+                )
                 item_container.add_child(object_item)
                 self.item_y_position += object_item.rect.height + 1
 
@@ -183,9 +185,9 @@ class UserInterface:
             if isinstance(transformed, Transformed):
                 transform_str = transformed.transform.name if transformed.transform is not None else '< >'
                 element_str = transformed.element.name if transformed.element is not None else '< >'
-                transformed_item = TransformedLabel(
+                transformed_item = ElementLabel(
                     transformed.name + '_ui', (10, self.item_y_position),
-                    '{} = {} @ {}'.format(transformed.name, transform_str, element_str)
+                    '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed
                 )
 
                 def transformed_label_on_click():
@@ -201,7 +203,9 @@ class UserInterface:
                         text += ' [Err]:' + transformed.error
                 else:
                     text += ' = < >'
-                transformed_item = Label(transformed.name + '_ui', (10, self.item_y_position), text)
+                transformed_item = ElementLabel(
+                    transformed.name + '_ui', (10, self.item_y_position), text, transformed
+                )
 
                 def set_for_custom_transformed():
                     controller.get_definition_for = transformed

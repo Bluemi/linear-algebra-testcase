@@ -5,7 +5,7 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from elements import Vector, Transform2D, Transform3D
+from elements import Vector, Transform2D, Transform3D, Transformed, CustomTransformed, Element
 from utils import gray, format_float
 
 
@@ -88,10 +88,12 @@ class ItemContainer(Item):
         :param event: The pygame event to forward
         :param rel_mouse_position: The mouse position relative to this element as (x, y).
         """
-        for item in self.child_items:
-            item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
-            if item.rect.collidepoint(rel_mouse_position):
-                item.handle_event(event, item_rel_mouse_position)
+        if self.visible:
+            super().handle_event(event, rel_mouse_position)
+            for item in self.child_items:
+                item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
+                if item.rect.collidepoint(rel_mouse_position):
+                    item.handle_event(event, item_rel_mouse_position)
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         """
@@ -402,6 +404,10 @@ class VectorItem(ItemContainer):
                 self.label_2_dragged = True
             self.on_click()
 
+        if event.type == pg.KEYDOWN:
+            if event.key == 8 or event.key == 127:  # esc or backspace
+                self.associated_vec.has_to_be_removed = True
+
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
@@ -470,7 +476,11 @@ class TransformItem(ItemContainer):
                 for x in range(self.associated_transform.matrix.shape[1]):
                     if self.number_labels[y][x].rect.collidepoint(rel_mouse_position):
                         self.dragged_label_index = (y, x)
-            self.on_click()
+            # self.on_click()
+
+        if event.type == pg.KEYDOWN:
+            if event.key == 8 or event.key == 127:  # esc or backspace
+                self.associated_transform.has_to_be_removed = True
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
@@ -490,6 +500,13 @@ class TransformItem(ItemContainer):
         self.dragged_label_index = other.dragged_label_index
 
 
-class TransformedLabel(Label):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str):
+class ElementLabel(Label):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, associated_element: Element):
         super().__init__(name, position, text)
+        self.associated_element = associated_element
+
+    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        super().handle_event(event, rel_mouse_position)
+        if event.type == pg.KEYDOWN:
+            if event.key == 8 or event.key == 127:  # esc or backspace
+                self.associated_element.has_to_be_removed = True

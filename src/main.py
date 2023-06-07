@@ -24,6 +24,8 @@ def main():
         for event in events + pg.event.get():
             controller.handle_event(event, coordinate_system, element_buffer, user_interface)
 
+        element_buffer.remove_elements()
+
         user_interface.build(element_buffer, controller)
 
         if controller.update_needed:
