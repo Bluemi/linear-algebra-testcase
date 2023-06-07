@@ -89,22 +89,28 @@ class UserInterface:
         self.item_y_position = 90
         for element in element_buffer.elements:
             if isinstance(element, Vector):
-                vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element)
-                item_container.add_child(vector_item)
-
-                def set_vector_for_transformed():
-                    if self.choosing_for_transformed:
-                        self.choosing_for_transformed.element = element
-                        self.choosing_for_transformed = None
-
-                vector_item.on_click = set_vector_for_transformed
-                self.item_y_position += vector_item.rect.height + 1
+                self._create_vector(element, item_container)
             elif isinstance(element, MultiVectorObject):
-                object_item = ElementLabel(
-                    element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
-                )
-                item_container.add_child(object_item)
-                self.item_y_position += object_item.rect.height + 1
+                self._create_multiobject(element, item_container)
+
+    def _create_multiobject(self, element, item_container):
+        object_item = ElementLabel(
+            element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
+        )
+        item_container.add_child(object_item)
+        self.item_y_position += object_item.rect.height + 1
+
+    def _create_vector(self, element, item_container):
+        vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element)
+        item_container.add_child(vector_item)
+
+        def set_vector_for_transformed():
+            if self.choosing_for_transformed:
+                self.choosing_for_transformed.element = element
+                self.choosing_for_transformed = None
+
+        vector_item.on_click = set_vector_for_transformed
+        self.item_y_position += vector_item.rect.height + 1
 
     def add_transforms_section(self, item_container, element_buffer: ElementBuffer):
         self.item_y_position += 10
@@ -138,15 +144,19 @@ class UserInterface:
         self.item_y_position += transforms_label.rect.height + 10
 
         for transform in element_buffer.transforms:
-            transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
+            self._create_transform(item_container, transform)
 
-            def set_transform_for_transformed():
-                if self.choosing_for_transformed:
-                    self.choosing_for_transformed.transform = transform
-                    self.choosing_for_transformed = None
-            transform_item.on_click = set_transform_for_transformed
-            item_container.add_child(transform_item)
-            self.item_y_position += transform_item.rect.height + 1
+    def _create_transform(self, item_container, transform):
+        transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
+
+        def set_transform_for_transformed():
+            if self.choosing_for_transformed:
+                self.choosing_for_transformed.transform = transform
+                self.choosing_for_transformed = None
+
+        transform_item.on_click = set_transform_for_transformed
+        item_container.add_child(transform_item)
+        self.item_y_position += transform_item.rect.height + 1
 
     def add_transformed_section(self, item_container, element_buffer: ElementBuffer, controller):
         self.item_y_position += 10
@@ -183,34 +193,41 @@ class UserInterface:
 
         for transformed in element_buffer.transformed:
             if isinstance(transformed, Transformed):
-                transform_str = transformed.transform.name if transformed.transform is not None else '< >'
-                element_str = transformed.element.name if transformed.element is not None else '< >'
-                transformed_item = ElementLabel(
-                    transformed.name + '_ui', (10, self.item_y_position),
-                    '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed
-                )
-
-                def transformed_label_on_click():
-                    self.choosing_for_transformed = transformed
-                transformed_item.on_click = transformed_label_on_click
-                item_container.add_child(transformed_item)
-                self.item_y_position += transformed_item.rect.height + 1
+                self._create_transformed(item_container, transformed)
             elif isinstance(transformed, CustomTransformed):
-                text = transformed.name
-                if transformed.definition:
-                    text += ' = ' + transformed.definition
-                    if transformed.error:
-                        text += ' [Err]:' + transformed.error
-                else:
-                    text += ' = < >'
-                transformed_item = ElementLabel(
-                    transformed.name + '_ui', (10, self.item_y_position), text, transformed
-                )
+                self._create_custom_transformed(item_container, transformed, controller)
 
-                transformed_for_on_click = transformed  # I don't know why I have to do this, but I have to
+    def _create_transformed(self, item_container, transformed):
+        transform_str = transformed.transform.name if transformed.transform is not None else '< >'
+        element_str = transformed.element.name if transformed.element is not None else '< >'
+        transformed_item = ElementLabel(
+            transformed.name + '_ui', (10, self.item_y_position),
+            '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed
+        )
 
-                def set_for_custom_transformed():
-                    controller.get_definition_for = transformed_for_on_click
-                transformed_item.on_click = set_for_custom_transformed
-                item_container.add_child(transformed_item)
-                self.item_y_position += transformed_item.rect.height + 1
+        def transformed_label_on_click():
+            self.choosing_for_transformed = transformed
+
+        transformed_item.on_click = transformed_label_on_click
+        item_container.add_child(transformed_item)
+        self.item_y_position += transformed_item.rect.height + 1
+
+    def _create_custom_transformed(self, item_container, transformed, controller):
+        text = transformed.name
+        if transformed.definition:
+            text += ' = ' + transformed.definition
+            if transformed.error:
+                text += ' [Err]:' + transformed.error
+        else:
+            text += ' = < >'
+        transformed_item = ElementLabel(
+            transformed.name + '_ui', (10, self.item_y_position), text, transformed
+        )
+        transformed_for_on_click = transformed  # I don't know why I have to do this, but I have to
+
+        def set_for_custom_transformed():
+            controller.get_definition_for = transformed_for_on_click
+
+        transformed_item.on_click = set_for_custom_transformed
+        item_container.add_child(transformed_item)
+        self.item_y_position += transformed_item.rect.height + 1
