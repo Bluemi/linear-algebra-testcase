@@ -42,17 +42,15 @@ class Controller:
         elif event.type == pg.MOUSEBUTTONUP:
             self.is_dragging = False
             self.dragged_element = None
+            self.update_needed = True
         elif event.type == pg.MOUSEMOTION:
-            if user_interface.ui_rect.collidepoint(self.mouse_position):
-                self.update_needed = True
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
-                self.update_needed = True
             if self.dragged_element:
                 pos = coordinate_system.transform_inverse(np.array(event.pos))
                 self.dragged_element.move_to(pos)
-                self.update_needed = True
             self.mouse_position = np.array(event.pos, dtype=int)
+            self.update_needed = True
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
         elif event.type == pg.KEYUP:
