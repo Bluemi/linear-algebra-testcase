@@ -125,7 +125,8 @@ class ItemContainer(Item):
         """
         if not self.visible:
             return
-        subsurface = surface.subsurface(self.rect)
+        subsurface_rect = self.rect.clip(surface.get_rect())
+        subsurface = surface.subsurface(subsurface_rect)
         for item in self.child_items:
             if item.visible:
                 item.render(subsurface)
