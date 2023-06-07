@@ -4,8 +4,7 @@ from typing import Iterator, Optional, Union
 import numpy as np
 import abc
 
-from coordinate_system import CoordinateSystem
-
+from coordinate_system import CoordinateSystem, transform as transform_f
 
 DRAG_SNAP_DISTANCE = 0.07
 
@@ -141,7 +140,7 @@ class Transformed(Element):
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
-            return self.transform.get_array() @ self.element.get_array()
+            return transform_f(self.transform.get_array(), self.element.get_array())
         return None
 
     def get_array(self):
