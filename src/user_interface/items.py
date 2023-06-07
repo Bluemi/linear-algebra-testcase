@@ -389,6 +389,8 @@ class VectorItem(ItemContainer):
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace
                 self.associated_vec.has_to_be_removed = True
+            if event.key == 114:  # r
+                self.associated_vec.render_kind = self.associated_vec.render_kind.next()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
@@ -462,6 +464,8 @@ class TransformItem(ItemContainer):
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace
                 self.associated_transform.has_to_be_removed = True
+            if event.key == 114:  # r
+                self.associated_transform.render_kind = self.associated_transform.render_kind.next()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
@@ -491,3 +495,5 @@ class ElementLabel(Label):
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace
                 self.associated_element.has_to_be_removed = True
+            if event.key == 114:  # r
+                self.associated_element.render_kind = self.associated_element.render_kind.next()

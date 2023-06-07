@@ -23,7 +23,7 @@ class RenderKind(enum.Enum):
     LINE = enum.auto()
     POINT = enum.auto()
 
-    def toggle(self):
+    def next(self):
         return RenderKind(self.value % len(RenderKind) + 1)
 
 
