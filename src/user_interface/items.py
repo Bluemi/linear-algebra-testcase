@@ -28,7 +28,6 @@ class Item(ABC):
         self.on_mouse_enter: Callable = noop
         self.on_mouse_leave: Callable = noop
 
-    @abstractmethod
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         """
         Function that a subclass can overwrite to handle given events.
@@ -36,7 +35,9 @@ class Item(ABC):
         :param event: The pygame event to handle
         :param rel_mouse_position: The mouse position relative to this element as (x, y).
         """
-        pass
+        if self.visible:
+            if event.type == pg.MOUSEBUTTONDOWN:
+                self.on_click()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         """
@@ -203,13 +204,6 @@ class Label(Item):
         self.rendered_font = None
         self.render_font()
 
-    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
-        """
-        Do not handle events.
-        """
-        if event.type == pg.MOUSEBUTTONDOWN:
-            self.on_click()
-
     def render_font(self):
         if self.rendered_font:
             return
@@ -251,10 +245,6 @@ class Image(Item):
             rect = Rect(rect[0], rect[1], image.get_width(), image.get_height())
         super().__init__(name, rect)
         self.image = image
-
-    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
-        if event.type == pg.MOUSEBUTTONDOWN:
-            self.on_click()
 
     def render(self, surface: Surface):
         surface.blit(self.image, self.rect)
@@ -340,13 +330,6 @@ class Button(Item):
         self.color = color if color is not None else gray(80)
         self.label = label
 
-    def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
-        """
-        Do not handle events.
-        """
-        if event.type == pg.MOUSEBUTTONDOWN:
-            self.on_click()
-
     def render(self, surface: Surface):
         pg.draw.rect(surface, self.color, self.rect)
         if self.label:
@@ -402,7 +385,6 @@ class VectorItem(ItemContainer):
                 self.label_1_dragged = True
             if self.number_label_2.rect.collidepoint(rel_mouse_position):
                 self.label_2_dragged = True
-            self.on_click()
 
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace
@@ -476,7 +458,6 @@ class TransformItem(ItemContainer):
                 for x in range(self.associated_transform.matrix.shape[1]):
                     if self.number_labels[y][x].rect.collidepoint(rel_mouse_position):
                         self.dragged_label_index = (y, x)
-            # self.on_click()
 
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace

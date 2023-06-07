@@ -207,8 +207,10 @@ class UserInterface:
                     transformed.name + '_ui', (10, self.item_y_position), text, transformed
                 )
 
+                transformed_for_on_click = transformed  # I don't know why I have to do this, but I have to
+
                 def set_for_custom_transformed():
-                    controller.get_definition_for = transformed
+                    controller.get_definition_for = transformed_for_on_click
                 transformed_item.on_click = set_for_custom_transformed
                 item_container.add_child(transformed_item)
                 self.item_y_position += transformed_item.rect.height + 1

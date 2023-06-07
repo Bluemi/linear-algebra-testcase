@@ -43,6 +43,8 @@ class Controller:
             self.is_dragging = False
             self.dragged_element = None
         elif event.type == pg.MOUSEMOTION:
+            if user_interface.ui_rect.collidepoint(self.mouse_position):
+                self.update_needed = True
             if self.is_dragging:
                 coordinate_system.translate(np.array(event.rel))
                 self.update_needed = True
