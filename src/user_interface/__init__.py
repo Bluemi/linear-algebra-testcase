@@ -97,6 +97,13 @@ class UserInterface:
         object_item = ElementLabel(
             element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
         )
+
+        def set_multiobject_for_transformed():
+            if self.choosing_for_transformed:
+                self.choosing_for_transformed.element = element
+                self.choosing_for_transformed = None
+
+        object_item.on_click = set_multiobject_for_transformed
         item_container.add_child(object_item)
         self.item_y_position += object_item.rect.height + 1
 
