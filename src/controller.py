@@ -70,8 +70,9 @@ class Controller:
                     self.update_needed = True
         elif event.type == pg.KEYDOWN:
             self.update_needed = True
+        elif event.type == pg.WINDOWRESIZED:
+            self.update_needed = True
         else:
-            # print(event)
             pass
 
         self.handle_hovering(element_buffer, coordinate_system)
