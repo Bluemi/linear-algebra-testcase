@@ -23,7 +23,10 @@ class Item(ABC):
         self.name: str = name
         self.rect: Rect = rect
         self.visible: bool = visible
+        self.hovered: bool = False
         self.on_click: Callable = noop
+        self.on_mouse_enter: Callable = noop
+        self.on_mouse_leave: Callable = noop
 
     @abstractmethod
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
@@ -42,7 +45,16 @@ class Item(ABC):
         :param event: The pygame event to handle
         :param rel_mouse_position: The mouse position relative to this element as (x, y).
         """
-        pass
+        if self.visible:
+            if event.type == pg.MOUSEMOTION:
+                rect = self.rect.copy()
+                rect.topleft = (0, 0)
+                hovered = rect.collidepoint(rel_mouse_position)
+                if self.hovered and not hovered:
+                    self.on_mouse_leave()
+                if not self.hovered and hovered:
+                    self.on_mouse_enter()
+                self.hovered = hovered
 
     @abstractmethod
     def render(self, surface: Surface):
@@ -60,6 +72,7 @@ class Item(ABC):
         :type other: Item
         """
         self.visible = other.visible
+        self.hovered = other.hovered
 
 
 class ItemContainer(Item):
@@ -87,9 +100,11 @@ class ItemContainer(Item):
         :param event: The pygame event to handle
         :param rel_mouse_position: The mouse position relative to this element as (x, y).
         """
-        for item in self.child_items:
-            item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
-            item.handle_every_event(event, item_rel_mouse_position)
+        if self.visible:
+            super().handle_every_event(event, rel_mouse_position)
+            for item in self.child_items:
+                item_rel_mouse_position = rel_mouse_position - np.array([item.rect.left, item.rect.top])
+                item.handle_every_event(event, item_rel_mouse_position)
 
     def render(self, surface: Surface):
         """
@@ -388,6 +403,7 @@ class VectorItem(ItemContainer):
             self.on_click()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        super().handle_every_event(event, rel_mouse_position)
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
             self.label_1_dragged = False
             self.label_2_dragged = False
@@ -457,6 +473,7 @@ class TransformItem(ItemContainer):
             self.on_click()
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
+        super().handle_every_event(event, rel_mouse_position)
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
             self.dragged_label_index = None
         elif event.type == pg.MOUSEMOTION:

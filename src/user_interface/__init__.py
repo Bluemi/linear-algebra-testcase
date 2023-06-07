@@ -31,7 +31,9 @@ class UserInterface:
 
     def build(self, element_buffer: ElementBuffer, controller):
         new_root = RootContainer()
-        item_container = Container('item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False)
+        item_container = Container(
+            'item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False
+        )
         new_root.add_child(item_container)
 
         self.item_y_position = 0
@@ -64,6 +66,7 @@ class UserInterface:
             'add_vec_btn', (objects_label.rect.width + 20, 58),
             label=Image('add_vec_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_vec():
             num_elements = len(element_buffer.elements) + 1
             element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1.0, 0.0])))
@@ -75,6 +78,7 @@ class UserInterface:
             'add_circle_btn', (objects_label.rect.width + 50, 58),
             label=Image('add_circle_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_circle():
             num_elements = len(element_buffer.elements) + 1
             element_buffer.elements.append(UnitCircle('u{}'.format(num_elements)))
@@ -110,6 +114,7 @@ class UserInterface:
             'add_2d_transform_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
             label=Image('add_2d_transform_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_2d_transform():
             num_transforms = len(element_buffer.transforms) + 1
             element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
@@ -121,6 +126,7 @@ class UserInterface:
             'add_3d_transform_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
             label=Image('add_3d_transform_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_3d_transform():
             num_transforms = len(element_buffer.transforms) + 1
             element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
@@ -131,6 +137,7 @@ class UserInterface:
 
         for transform in element_buffer.transforms:
             transform_item = TransformItem(transform.name + '_ui', (10, self.item_y_position), transform)
+
             def set_transform_for_transformed():
                 if self.choosing_for_transformed:
                     self.choosing_for_transformed.transform = transform
@@ -149,6 +156,7 @@ class UserInterface:
             'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
             label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_transformed():
             num_transformed = len(element_buffer.transformed) + 1
             element_buffer.transformed.append(
@@ -162,6 +170,7 @@ class UserInterface:
             'add_custom_transform_btn', (transformed_label.rect.width + 50, self.item_y_position - 2),
             label=Image('add_custom_transform_btn_label', (0, 0), Button.create_plus_image())
         )
+
         def add_custom_transformed():
             num_transformed = len(element_buffer.transformed) + 1
             element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE))
@@ -178,6 +187,7 @@ class UserInterface:
                     transformed.name + '_ui', (10, self.item_y_position),
                     '{} = {} @ {}'.format(transformed.name, transform_str, element_str)
                 )
+
                 def transformed_label_on_click():
                     self.choosing_for_transformed = transformed
                 transformed_item.on_click = transformed_label_on_click
@@ -192,6 +202,7 @@ class UserInterface:
                 else:
                     text += ' = < >'
                 transformed_item = Label(transformed.name + '_ui', (10, self.item_y_position), text)
+
                 def set_for_custom_transformed():
                     controller.get_definition_for = transformed
                 transformed_item.on_click = set_for_custom_transformed
