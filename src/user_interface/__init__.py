@@ -128,7 +128,7 @@ class UserInterface:
     def _create_multiobject(self, element, item_container):
         text_color = gray(220) if element.visible else gray(100)
         object_item = ElementLabel(
-            element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element,
+            element.name + '_ui', (20, self.item_y_position), element.name + '   Object', element,
             text_color=text_color
         )
 
