@@ -35,6 +35,7 @@ The menu shows three sections:
 ### Controls
 - To remove any object, transform or transformed hover over the element in the menu on the left side and press `Del` or `Backspace`.
 - You can toggle between render mode `LINE` and `POINT` by hovering over a rendered element on the left side and pressing `r`.
+- You can toggle visibility by hovering over a rendered element on the left side and pressing `v`.
 
 
 ### Custom Transformed
