@@ -18,16 +18,10 @@ class Controller:
         user_interface.handle_event(event, self.mouse_position)
         if not user_interface.consuming_events(self.mouse_position):
             element_buffer.handle_event(event, coordinate_system, self.mouse_position)
+            self.handle_coordinate_system(event, coordinate_system)
 
         if event.type == pg.QUIT:
             self.running = False
-        elif event.type == pg.MOUSEWHEEL:
-            if not user_interface.consuming_events(self.mouse_position):
-                if event.y < 0:
-                    coordinate_system.zoom_out()
-                else:
-                    coordinate_system.zoom_in()
-            self.update_needed = True
         elif event.type == pg.MOUSEBUTTONDOWN:
             if not user_interface.ui_rect.collidepoint(self.mouse_position):
                 self.is_dragging = True
@@ -54,3 +48,14 @@ class Controller:
         else:
             # print(event)
             pass
+
+    def handle_coordinate_system(self, event, coordinate_system: CoordinateSystem):
+        if event.type == pg.MOUSEWHEEL:
+            if event.y < 0:
+                coordinate_system.zoom_out()
+            else:
+                coordinate_system.zoom_in()
+            self.update_needed = True
+        elif event.type == pg.MOUSEMOTION:
+            if self.is_dragging:
+                coordinate_system.translate(np.array(event.rel))
