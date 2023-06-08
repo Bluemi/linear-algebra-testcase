@@ -8,6 +8,7 @@ from elements import Transform2D, ElementBuffer, Transformed, Vector, MultiVecto
     RenderKind
 from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem, \
     ElementLabel
+from user_interface.window import Window
 from utils import gray
 
 
@@ -21,15 +22,32 @@ class UserInterface:
         self.item_y_position = 0
 
         self.choosing_for_transformed: Optional[Transformed] = None
+        self.text_input_window: Optional[Window] = None
 
     def render(self, screen: Surface):
         self.root.render(screen)
+        if self.text_input_window:
+            self.text_input_window.render(screen)
 
     def handle_event(self, event: pg.event.Event, mouse_position: np.ndarray):
-        self.root.handle_event(event, mouse_position)
-        self.root.handle_every_event(event, mouse_position)
+        """
+        Handles the given event.
 
-    def build(self, element_buffer: ElementBuffer, controller):
+        :param event: The event to handle.
+        :param mouse_position: The absolute mouse position
+        """
+        if self.text_input_window:
+            self.text_input_window.handle_event(event)
+            if self.text_input_window.has_to_close:
+                self.text_input_window = None
+        else:
+            self.root.handle_event(event, mouse_position)
+            self.root.handle_every_event(event, mouse_position)
+
+    def consuming_events(self, position: np.ndarray):
+        return self.root.colliding(position) or bool(self.text_input_window)
+
+    def build(self, element_buffer: ElementBuffer):
         new_root = RootContainer()
         item_container = Container(
             'item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False
@@ -39,7 +57,7 @@ class UserInterface:
         self.item_y_position = 0
         self.add_objects_section(item_container, element_buffer)
         self.add_transforms_section(item_container, element_buffer)
-        self.add_transformed_section(item_container, element_buffer, controller)
+        self.add_transformed_section(item_container, element_buffer)
         self.add_menu_button(new_root, item_container)
 
         # update from old root
@@ -182,7 +200,7 @@ class UserInterface:
         item_container.add_child(transform_item)
         self.item_y_position += transform_item.rect.height + 1
 
-    def add_transformed_section(self, item_container, element_buffer: ElementBuffer, controller):
+    def add_transformed_section(self, item_container, element_buffer: ElementBuffer):
         self.item_y_position += 10
         transformed_label = Label('transformed_label', (10, self.item_y_position), 'Transformed')
         item_container.add_child(transformed_label)
@@ -220,7 +238,7 @@ class UserInterface:
             if isinstance(transformed, Transformed):
                 self._create_transformed(item_container, transformed)
             elif isinstance(transformed, CustomTransformed):
-                self._create_custom_transformed(item_container, transformed, controller)
+                self._create_custom_transformed(item_container, transformed)
 
     def _create_transformed(self, item_container, transformed):
         transform_str = transformed.transform.name if transformed.transform is not None else '< >'
@@ -238,7 +256,7 @@ class UserInterface:
         item_container.add_child(transformed_item)
         self.item_y_position += transformed_item.rect.height + 1
 
-    def _create_custom_transformed(self, item_container, transformed, controller):
+    def _create_custom_transformed(self, item_container, transformed):
         text = transformed.name
         if transformed.definition:
             text += ' = ' + transformed.definition
@@ -250,11 +268,13 @@ class UserInterface:
         transformed_item = ElementLabel(
             transformed.name + '_ui', (10, self.item_y_position), text, transformed, text_color=text_color
         )
-        transformed_for_on_click = transformed  # I don't know why I have to do this, but I have to
 
-        def set_for_custom_transformed():
-            controller.get_definition_for = transformed_for_on_click
+        def start_custom_transform_text_input():
+            def text_window_on_close(window_text):
+                transformed.set_definition(window_text)
+                transformed.compile_definition()
+            self.text_input_window = Window(text_window_on_close, transformed.definition)
 
-        transformed_item.on_click = set_for_custom_transformed
+        transformed_item.on_click = start_custom_transform_text_input
         item_container.add_child(transformed_item)
         self.item_y_position += transformed_item.rect.height + 1

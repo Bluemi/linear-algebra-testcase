@@ -1,6 +1,6 @@
 import enum
 from itertools import chain
-from typing import Iterator, Optional, Union, Iterable
+from typing import Iterator, Optional, Union, Iterable, List
 import pygame as pg
 
 import numpy as np
@@ -42,10 +42,6 @@ class Element:
         self.visible = True
 
     @abc.abstractmethod
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return
-
-    @abc.abstractmethod
     def move_to(self, mouse_position: np.ndarray):
         return
 
@@ -68,11 +64,26 @@ class Element:
         """
         pass
 
+    @abc.abstractmethod
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        """
+        Handles the given event.
+
+        :param event: The event to handle. All events are handled.
+        :param coordinate_system: The coordinate system, that can be used to convert between screen and element space.
+        :param mouse_position: The mouse position in screen space
+        """
+        pass
+
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return False
+
 
 class Vector(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
         self.coordinates = coordinates.reshape((2, 1))
+        self.dragged = False
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         pos = coordinate_system.transform(self.get_array()).flatten()
@@ -96,12 +107,24 @@ class Vector(Element):
         elif self.render_kind == RenderKind.LINE:
             pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.is_hovered(mouse_position, coordinate_system):
+                self.dragged = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged = False
+        elif event.type == pg.MOUSEMOTION:
+            if self.dragged:
+                pos = coordinate_system.transform_inverse(np.array(event.pos))
+                self.coordinates = snap(pos)
+
 
 class MultiVectorObject(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.POINT):
         super().__init__(name, render_kind)
         self.coordinates = coordinates
         self.original_coordinates = coordinates
+        self.dragged = False
 
     @staticmethod
     def generate_unit_circle(num_points, include_center=True):
@@ -168,6 +191,17 @@ class MultiVectorObject(Element):
             elif self.render_kind == RenderKind.LINE:
                 pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=1)
 
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.is_hovered(mouse_position, coordinate_system):
+                self.dragged = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged = False
+        elif event.type == pg.MOUSEMOTION:
+            if self.dragged:
+                pos = coordinate_system.transform_inverse(np.array(event.pos))
+                self.move_to(pos.reshape((2, 1)))
+
 
 class Transform2D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
@@ -177,13 +211,13 @@ class Transform2D(Element):
     def get_array(self):
         return snap(self.matrix)
 
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return False
-
     def move_to(self, mouse_position: np.ndarray):
         pass
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        pass
+
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
 
 
@@ -195,13 +229,13 @@ class Transform3D(Element):
     def get_array(self):
         return snap(self.matrix)
 
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return False
-
     def move_to(self, mouse_position: np.ndarray):
         pass
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        pass
+
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
 
 
@@ -220,9 +254,6 @@ class Transformed(Element):
     def get_array(self):
         return self.get_position()
 
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return False
-
     def move_to(self, mouse_position: np.ndarray):
         pass
 
@@ -237,6 +268,9 @@ class Transformed(Element):
                 pg.draw.circle(screen, RED, point, 3)
             elif self.render_kind == RenderKind.LINE:
                 pg.draw.line(screen, RED, zero_point, point, width=1)
+
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        pass
 
 
 class CustomTransformed(Element):
@@ -263,9 +297,6 @@ class CustomTransformed(Element):
 
     def get_array(self):
         return self.last_result
-
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return False
 
     def move_to(self, mouse_position: np.ndarray):
         pass
@@ -311,12 +342,15 @@ class CustomTransformed(Element):
             elif result is not None:
                 self.error = 'result is not numpy array'
 
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        pass
+
 
 class ElementBuffer:
     def __init__(self):
-        self.elements = []
-        self.transforms = []
-        self.transformed = []
+        self.elements: List[Element] = []
+        self.transforms: List[Element] = []
+        self.transformed: List[Element] = []
 
     def __iter__(self) -> Iterator[Element]:
         return iter(self.elements)
@@ -333,3 +367,9 @@ class ElementBuffer:
         for element in chain(self.elements, self.transformed):
             if element.visible:
                 element.render(screen, coordinate_system)
+
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        for e in self.elements:
+            e.handle_event(event, coordinate_system, mouse_position)
+        for e in self.transformed:
+            e.handle_event(event, coordinate_system, mouse_position)

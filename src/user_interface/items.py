@@ -6,11 +6,7 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from elements import Vector, Transform2D, Transform3D, Element
-from utils import gray, format_float
-
-
-def noop():
-    pass
+from utils import gray, format_float, noop
 
 
 class Item(ABC):
@@ -182,6 +178,16 @@ class RootContainer(ItemContainer):
         :type other: RootContainer
         """
         super().update_from(other)
+
+    def colliding(self, position: np.ndarray):
+        """
+        Checks whether a child is colliding with the given position.
+        :param position: The position to check (x, y).
+        """
+        for c in self.child_items:
+            if c.rect.collidepoint(position):
+                return True
+        return False
 
 
 class Label(Item):

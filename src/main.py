@@ -26,7 +26,7 @@ def main():
 
         element_buffer.remove_elements()
 
-        user_interface.build(element_buffer, controller)
+        user_interface.build(element_buffer)
 
         if controller.update_needed:
             render(screen, coordinate_system, element_buffer, render_font, controller, user_interface)

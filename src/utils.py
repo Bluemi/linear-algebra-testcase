@@ -4,6 +4,10 @@ import inspect
 import numpy as np
 
 
+def noop():
+    pass
+
+
 def gray(b=127) -> pg.Color:
     return pg.Color(b, b, b)
 
