@@ -1,4 +1,5 @@
 import enum
+from itertools import chain
 from typing import Iterator, Optional, Union, Iterable
 import pygame as pg
 
@@ -327,3 +328,8 @@ class ElementBuffer:
         self.elements = [e for e in self.elements if not e.has_to_be_removed]
         self.transforms = [t for t in self.transforms if not t.has_to_be_removed]
         self.transformed = [t for t in self.transformed if not t.has_to_be_removed]
+
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        for element in chain(self.elements, self.transformed):
+            if element.visible:
+                element.render(screen, coordinate_system)

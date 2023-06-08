@@ -1,5 +1,3 @@
-from itertools import chain
-
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
@@ -19,7 +17,7 @@ def render(
 ):
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
-    draw_elements(screen, coordinate_system, element_buffer)
+    element_buffer.render(screen, coordinate_system)
     draw_user_interface(screen, user_interface, controller, render_font)
 
 
@@ -48,7 +46,6 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
     extreme_points = coordinate_system.transform_inverse(extreme_points).T
     target_num_points = TARGET_NUM_POINTS * screen.get_width() // DEFAULT_SCREEN_SIZE[0]
     target_dividend = (extreme_points[1, 0] - extreme_points[0, 0]) / target_num_points
-    # extreme_points = np.trunc(extreme_points).astype(int)
     dividend = adapt_quotient(target_dividend)
     x_minimum = np.round(extreme_points[0, 0] / dividend) * dividend
     x_maximum = np.round(extreme_points[1, 0] / dividend) * dividend
@@ -114,9 +111,3 @@ def draw_text_input(screen: Surface, controller: Controller, render_font):
 
     font = render_font.render(elem.definition, True, pg.Color(220, 220, 220))
     screen.blit(font, small_rect.move(3, 12))
-
-
-def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
-    for element in chain(element_buffer.elements, element_buffer.transformed):
-        if element.visible:
-            element.render(screen, coordinate_system)
