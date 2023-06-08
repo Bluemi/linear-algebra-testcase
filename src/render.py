@@ -1,3 +1,5 @@
+from itertools import chain
+
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
@@ -115,12 +117,6 @@ def draw_text_input(screen: Surface, controller: Controller, render_font):
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
-    for element in element_buffer.elements:
-        if not element.visible:
-            continue
-        element.render(screen, coordinate_system)
-
-    for element in element_buffer.transformed:
-        if not element.visible:
-            continue
-        element.render(screen, coordinate_system)
+    for element in chain(element_buffer.elements, element_buffer.transformed):
+        if element.visible:
+            element.render(screen, coordinate_system)
