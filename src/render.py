@@ -10,7 +10,7 @@ from elements import ElementBuffer, CustomTransformed
 from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
-TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
+TARGET_DIVIDENDS = [1, 2.5, 5, 10]
 
 
 def render(
