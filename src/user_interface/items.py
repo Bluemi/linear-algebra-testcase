@@ -145,7 +145,8 @@ class ItemContainer(Item):
 
 
 class Container(ItemContainer):
-    def __init__(self, name: str, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True, child_items: Optional[List[Item]] = None):
+    def __init__(self, name: str, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True,
+                 child_items: Optional[List[Item]] = None):
         super().__init__(name, rect, visible, child_items)
         self.color = color if color is not None else gray(42)
 
@@ -191,7 +192,8 @@ class RootContainer(ItemContainer):
 
 
 class Label(Item):
-    def __init__(self, name: str, position: Union[np.ndarray or Tuple[int, int]], text: str, fontsize: int = 18, text_color: pg.Color = None, font_name: str = '', visible: bool = True):
+    def __init__(self, name: str, position: Union[np.ndarray or Tuple[int, int]], text: str, fontsize: int = 18,
+                 text_color: pg.Color = None, font_name: str = '', visible: bool = True):
         """
         Initiate a new item.
         :param name: The name of this item
@@ -230,7 +232,8 @@ class Label(Item):
         :type other: Label
         """
         super().update_from(other)
-        if self.text != other.text or self.fontsize != other.fontsize or self.text_color != other.text_color or self.font_name != other.font_name:
+        if (self.text != other.text or self.fontsize != other.fontsize or self.text_color != other.text_color or
+                self.font_name != other.font_name):
             self.font = pg.font.Font(self.font_name, self.fontsize)
             self.rendered_font = None
             self.render_font()
@@ -355,11 +358,13 @@ class Button(Item):
 
 
 class VectorItem(ItemContainer):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_vec: Vector, fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_vec: Vector,
+                 fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
         """
         Creates a new VectorItem that can be used to render a vector ui element.
         :param name: The name of the item
-        :param position: The position where this item should be placed, relative to the containing element. The width and height are determined automatically.
+        :param position: The position where this item should be placed, relative to the containing element.
+                         The width and height are determined automatically.
         :param associated_vec: The vector this ui element represents
         :param fontsize: The fontsize to use
         :param text_color: The text color to use
@@ -429,11 +434,14 @@ class VectorItem(ItemContainer):
 
 
 class TransformItem(ItemContainer):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_transform: Union[Transform2D, Transform3D], fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]],
+                 associated_transform: Union[Transform2D, Transform3D], fontsize: int = 18,
+                 text_color: pg.Color = None, font_name: str = ''):
         """
         Creates a new VectorItem that can be used to render a vector ui element.
         :param name: The name of the item
-        :param position: The position where this item should be placed, relative to the containing element. The width and height are determined automatically.
+        :param position: The position where this item should be placed, relative to the containing element.
+                         The width and height are determined automatically.
         :param associated_transform: The vector this ui element represents
         :param fontsize: The fontsize to use
         :param text_color: The text color to use
@@ -457,7 +465,10 @@ class TransformItem(ItemContainer):
         for y in range(self.associated_transform.get_array().shape[0]):
             line_of_labels = []
             for x in range(self.associated_transform.get_array().shape[1]):
-                number_label = Label(self.name + '_label_1', (50 + 50*x, 10 + 20*y), format_float(self.associated_transform.get_array()[y, x]))
+                number_label = Label(
+                    self.name + '_label_1', (50 + 50*x, 10 + 20*y),
+                    format_float(self.associated_transform.get_array()[y, x])
+                )
                 line_of_labels.append(number_label)
                 self.add_child(number_label)
             self.number_labels.append(line_of_labels)
@@ -502,7 +513,8 @@ class TransformItem(ItemContainer):
 
 
 class ElementLabel(Label):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, associated_element: Element, text_color: Optional[pg.Color] = None):
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, associated_element: Element,
+                 text_color: Optional[pg.Color] = None):
         super().__init__(name, position, text, text_color=text_color)
         self.associated_element = associated_element
 
