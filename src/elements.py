@@ -179,10 +179,7 @@ class Transformed(Element):
         return None
 
     def get_array(self):
-        position = self.get_position()
-        if position is not None:
-            return position.T
-        return None
+        return self.get_position()
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return False

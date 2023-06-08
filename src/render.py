@@ -175,6 +175,7 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     result = eval(element.compiled_definition, {}, eval_locals)
                 except Exception as e:
                     element.error = repr(e)
+                    print(element.error)
 
                 element.last_result = result
                 if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
