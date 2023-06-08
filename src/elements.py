@@ -34,6 +34,7 @@ class Element:
         self.hovered = False
         self.render_kind = render_kind
         self.has_to_be_removed = False
+        self.visible = True
 
     @abc.abstractmethod
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):

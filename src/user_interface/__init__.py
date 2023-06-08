@@ -108,8 +108,10 @@ class UserInterface:
                 self._create_multiobject(element, item_container)
 
     def _create_multiobject(self, element, item_container):
+        text_color = gray(220) if element.visible else gray(100)
         object_item = ElementLabel(
-            element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element
+            element.name + '_ui', (20, self.item_y_position), element.name + '   UnitCircle', element,
+            text_color=text_color
         )
 
         def set_multiobject_for_transformed():
@@ -122,7 +124,8 @@ class UserInterface:
         self.item_y_position += object_item.rect.height + 1
 
     def _create_vector(self, element, item_container):
-        vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element)
+        text_color = gray(220) if element.visible else gray(100)
+        vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element, text_color=text_color)
         item_container.add_child(vector_item)
 
         def set_vector_for_transformed():
@@ -221,9 +224,10 @@ class UserInterface:
     def _create_transformed(self, item_container, transformed):
         transform_str = transformed.transform.name if transformed.transform is not None else '< >'
         element_str = transformed.element.name if transformed.element is not None else '< >'
+        text_color = gray(220) if transformed.visible else gray(100)
         transformed_item = ElementLabel(
             transformed.name + '_ui', (10, self.item_y_position),
-            '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed
+            '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed, text_color=text_color
         )
 
         def transformed_label_on_click():
@@ -241,8 +245,9 @@ class UserInterface:
                 text += ' [Err]:' + transformed.error
         else:
             text += ' = < >'
+        text_color = gray(220) if transformed.visible else gray(100)
         transformed_item = ElementLabel(
-            transformed.name + '_ui', (10, self.item_y_position), text, transformed
+            transformed.name + '_ui', (10, self.item_y_position), text, transformed, text_color=text_color
         )
         transformed_for_on_click = transformed  # I don't know why I have to do this, but I have to
 

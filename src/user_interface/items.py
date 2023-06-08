@@ -5,7 +5,7 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from elements import Vector, Transform2D, Transform3D, Transformed, CustomTransformed, Element
+from elements import Vector, Transform2D, Transform3D, Element
 from utils import gray, format_float
 
 
@@ -164,6 +164,7 @@ class Container(ItemContainer):
         :type other: Container
         """
         super().update_from(other)
+
 
 class RootContainer(ItemContainer):
     def __init__(self):
@@ -362,15 +363,19 @@ class VectorItem(ItemContainer):
         super().__init__(name, rect)
         self.associated_vec: Vector = associated_vec
         self.fontsize = fontsize
-        self.text_color = text_color if text_color is not None else gray(220)
+        text_color = text_color if text_color is not None else gray(220)
         self.font_name = font_name if font_name else pg.font.get_default_font()
         self.font: pg.font.Font = pg.font.Font(self.font_name, self.fontsize)
 
-        name_label = Label(self.name + '_name_label', (10, 20), self.associated_vec.name)
+        name_label = Label(self.name + '_name_label', (10, 20), self.associated_vec.name, text_color=text_color)
         self.add_child(name_label)
-        self.number_label_1 = Label(self.name + '_label_1', (50, 10), format_float(self.associated_vec.get_array()[0, 0]))
+        self.number_label_1 = Label(
+            self.name + '_label_1', (50, 10), format_float(self.associated_vec.get_array()[0, 0]), text_color=text_color
+        )
         self.add_child(self.number_label_1)
-        self.number_label_2 = Label(self.name + '_label_2', (50, 30), format_float(self.associated_vec.get_array()[1, 0]))
+        self.number_label_2 = Label(
+            self.name + '_label_2', (50, 30), format_float(self.associated_vec.get_array()[1, 0]), text_color=text_color
+        )
         self.add_child(self.number_label_2)
 
         self.label_1_dragged = False
@@ -392,6 +397,8 @@ class VectorItem(ItemContainer):
                 self.associated_vec.has_to_be_removed = True
             if event.key == 114:  # r
                 self.associated_vec.render_kind = self.associated_vec.render_kind.next()
+            if event.key == 118:  # v
+                self.associated_vec.visible = not self.associated_vec.visible
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
@@ -467,6 +474,8 @@ class TransformItem(ItemContainer):
                 self.associated_transform.has_to_be_removed = True
             if event.key == 114:  # r
                 self.associated_transform.render_kind = self.associated_transform.render_kind.next()
+            if event.key == 118:  # v
+                self.associated_transform.visible = not self.associated_transform.visible
 
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
@@ -487,8 +496,8 @@ class TransformItem(ItemContainer):
 
 
 class ElementLabel(Label):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, associated_element: Element):
-        super().__init__(name, position, text)
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, associated_element: Element, text_color: Optional[pg.Color] = None):
+        super().__init__(name, position, text, text_color=text_color)
         self.associated_element = associated_element
 
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
@@ -498,3 +507,5 @@ class ElementLabel(Label):
                 self.associated_element.has_to_be_removed = True
             if event.key == 114:  # r
                 self.associated_element.render_kind = self.associated_element.render_kind.next()
+            if event.key == 118:  # v
+                self.associated_element.visible = not self.associated_element.visible

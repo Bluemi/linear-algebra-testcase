@@ -124,6 +124,8 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
     zero_point = coordinate_system.transform(np.array([0, 0]))
 
     for element in element_buffer.elements:
+        if not element.visible:
+            continue
         if isinstance(element, Vector):
             transformed_vec = coordinate_system.transform(element.get_array())
             width = 3 if element.hovered else 1
@@ -142,6 +144,8 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     pg.draw.line(screen, GREEN, zero_point, point, width=1)
 
     for element in element_buffer.transformed:
+        if not element.visible:
+            continue
         if isinstance(element, Transformed):
             new_vec = element.get_position()
             if new_vec is not None:
@@ -185,13 +189,14 @@ def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_
                     if result.shape == (2,):
                         result = np.expand_dims(result, 0)
                     if result.shape[0] == 2 and len(result.shape) == 2:
-                        transformed_vecs = coordinate_system.transform(result).T
-                        # width = 3 if element.hovered else 1
-                        for point in transformed_vecs:
-                            if element.render_kind == RenderKind.POINT:
-                                pg.draw.circle(screen, RED, point, 3)
-                            elif element.render_kind == RenderKind.LINE:
-                                pg.draw.line(screen, RED, zero_point, point, width=1)
+                        if element.visible:
+                            transformed_vecs = coordinate_system.transform(result).T
+                            # width = 3 if element.hovered else 1
+                            for point in transformed_vecs:
+                                if element.render_kind == RenderKind.POINT:
+                                    pg.draw.circle(screen, RED, point, 3)
+                                elif element.render_kind == RenderKind.LINE:
+                                    pg.draw.line(screen, RED, zero_point, point, width=1)
                     else:
                         element.error = 'Invalid result shape: {}'.format(result.shape)
                 elif result is not None:
