@@ -1,20 +1,14 @@
-from typing import Iterable
-
 import numpy as np
 import pygame as pg
 from pygame import Surface, Color
 
 from controller import Controller
-from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE, transform as transform_helper
-from elements import ElementBuffer, Vector, Transformed, MultiVectorObject, CustomTransformed, RenderKind
+from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
+from elements import ElementBuffer, CustomTransformed
 from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2, 4, 5, 10]
-
-
-RED = pg.Color(255, 80, 80)
-GREEN = pg.Color(100, 220, 100)
 
 
 def render(
@@ -121,87 +115,12 @@ def draw_text_input(screen: Surface, controller: Controller, render_font):
 
 
 def draw_elements(screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer):
-    zero_point = coordinate_system.transform(np.array([0, 0]))
-
     for element in element_buffer.elements:
         if not element.visible:
             continue
-        if isinstance(element, Vector):
-            transformed_vec = coordinate_system.transform(element.get_array())
-            width = 3 if element.hovered else 1
-            if element.render_kind == RenderKind.POINT:
-                pg.draw.circle(screen, GREEN, transformed_vec, width)
-            elif element.render_kind == RenderKind.LINE:
-                pg.draw.line(screen, GREEN, zero_point, transformed_vec, width=width)
-
-        if isinstance(element, MultiVectorObject):
-            transformed_vec = coordinate_system.transform(element.get_array()).T
-            width = 4 if element.hovered else 3
-            for point in transformed_vec:
-                if element.render_kind == RenderKind.POINT:
-                    pg.draw.circle(screen, GREEN, point, width)
-                elif element.render_kind == RenderKind.LINE:
-                    pg.draw.line(screen, GREEN, zero_point, point, width=1)
+        element.render(screen, coordinate_system)
 
     for element in element_buffer.transformed:
         if not element.visible:
             continue
-        if isinstance(element, Transformed):
-            new_vec = element.get_position()
-            if new_vec is not None:
-                if isinstance(element.element, Vector):
-                    transformed_vec = coordinate_system.transform(new_vec).flatten()
-                    if element.render_kind == RenderKind.POINT:
-                        pg.draw.circle(screen, RED, transformed_vec, 3)
-                    elif element.render_kind == RenderKind.LINE:
-                        pg.draw.line(screen, RED, zero_point, transformed_vec, width=1)
-                elif isinstance(element.element, MultiVectorObject):
-                    transformed_vec = coordinate_system.transform(new_vec).T
-                    for point in transformed_vec:
-                        if element.render_kind == RenderKind.POINT:
-                            pg.draw.circle(screen, RED, point, 3)
-                        elif element.render_kind == RenderKind.LINE:
-                            pg.draw.line(screen, RED, zero_point, point, width=1)
-        elif isinstance(element, CustomTransformed):
-            if element.compiled_definition:
-                # build eval locals
-                eval_locals = {'np': np, 'mm': transform_helper, 'norm': normalize_vec}
-                for e in element_buffer.elements:
-                    eval_locals[e.name] = e.get_array()
-                for t in element_buffer.transforms:
-                    eval_locals[t.name] = t.get_array()
-                for t in element_buffer.transformed:
-                    eval_locals[t.name] = t.get_array()
-
-                result = None
-                element.error = None
-                try:
-                    result = eval(element.compiled_definition, {}, eval_locals)
-                except Exception as e:
-                    element.error = repr(e)
-                    print(element.error)
-
-                element.last_result = result
-                if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
-                    result = np.array(result)
-                if isinstance(result, np.ndarray):
-                    element.last_result = result
-                    if result.shape == (2,):
-                        result = np.expand_dims(result, 0)
-                    if result.shape[0] == 2 and len(result.shape) == 2:
-                        if element.visible:
-                            transformed_vecs = coordinate_system.transform(result).T
-                            # width = 3 if element.hovered else 1
-                            for point in transformed_vecs:
-                                if element.render_kind == RenderKind.POINT:
-                                    pg.draw.circle(screen, RED, point, 3)
-                                elif element.render_kind == RenderKind.LINE:
-                                    pg.draw.line(screen, RED, zero_point, point, width=1)
-                    else:
-                        element.error = 'Invalid result shape: {}'.format(result.shape)
-                elif result is not None:
-                    element.error = 'result is not numpy array'
-
-
-def normalize_vec(vec):
-    return vec / (np.linalg.norm(vec) + 0.000000001)
+        element.render(screen, coordinate_system)

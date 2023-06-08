@@ -1,12 +1,16 @@
 import enum
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional, Union, Iterable
+import pygame as pg
 
 import numpy as np
 import abc
 
 from coordinate_system import CoordinateSystem, transform as transform_f
+from utils import normalize_vec
 
 DRAG_SNAP_DISTANCE = 0.07
+RED = pg.Color(255, 80, 80)
+GREEN = pg.Color(100, 220, 100)
 
 
 def snap(coordinates: np.ndarray):
@@ -53,6 +57,16 @@ class Element:
         """
         pass
 
+    @abc.abstractmethod
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        """
+        Renders the element in the coordinate system.
+
+        :param screen: The screen to draw on
+        :param coordinate_system: The coordinate system to convert coordinates into screen coordinates.
+        """
+        pass
+
 
 class Vector(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
@@ -72,6 +86,14 @@ class Vector(Element):
 
     def get_array(self):
         return self.coordinates.reshape((2, 1))
+
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        transformed_vec = coordinate_system.transform(self.get_array())
+        width = 3 if self.hovered else 1
+        if self.render_kind == RenderKind.POINT:
+            pg.draw.circle(screen, GREEN, transformed_vec, width)
+        elif self.render_kind == RenderKind.LINE:
+            pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
 
 class MultiVectorObject(Element):
@@ -136,6 +158,15 @@ class MultiVectorObject(Element):
     def get_array(self):
         return self.coordinates
 
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        transformed_vec = coordinate_system.transform(self.get_array()).T
+        width = 4 if self.hovered else 3
+        for point in transformed_vec:
+            if self.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, GREEN, point, width)
+            elif self.render_kind == RenderKind.LINE:
+                pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=1)
+
 
 class Transform2D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
@@ -151,6 +182,9 @@ class Transform2D(Element):
     def move_to(self, mouse_position: np.ndarray):
         pass
 
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        pass
+
 
 class Transform3D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
@@ -164,6 +198,9 @@ class Transform3D(Element):
         return False
 
     def move_to(self, mouse_position: np.ndarray):
+        pass
+
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         pass
 
 
@@ -188,14 +225,27 @@ class Transformed(Element):
     def move_to(self, mouse_position: np.ndarray):
         pass
 
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        new_vec = self.get_position()
+        zero_point = coordinate_system.get_zero_point()
+        if new_vec is None:
+            return
+        transformed_vec = coordinate_system.transform(new_vec).T
+        for point in transformed_vec:
+            if self.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, RED, point, 3)
+            elif self.render_kind == RenderKind.LINE:
+                pg.draw.line(screen, RED, zero_point, point, width=1)
+
 
 class CustomTransformed(Element):
-    def __init__(self, name: str, render_kind: RenderKind):
+    def __init__(self, name: str, render_kind: RenderKind, element_buffer):
         super().__init__(name, render_kind)
         self.definition = ""
         self.compiled_definition = None
         self.error = None
         self.last_result = None
+        self.element_buffer = element_buffer
 
     def compile_definition(self):
         self.error = None
@@ -218,6 +268,47 @@ class CustomTransformed(Element):
 
     def move_to(self, mouse_position: np.ndarray):
         pass
+
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        zero_point = coordinate_system.get_zero_point()
+        if self.compiled_definition:
+            # build eval locals
+            eval_locals = {'np': np, 'mm': transform_f, 'norm': normalize_vec}
+            for e in self.element_buffer.elements:
+                eval_locals[e.name] = e.get_array()
+            for t in self.element_buffer.transforms:
+                eval_locals[t.name] = t.get_array()
+            for t in self.element_buffer.transformed:
+                eval_locals[t.name] = t.get_array()
+
+            result = None
+            self.error = None
+            try:
+                result = eval(self.compiled_definition, {}, eval_locals)
+            except Exception as e:
+                self.error = repr(e)
+                print(self.error)
+
+            self.last_result = result
+            if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
+                result = np.array(result)
+            if isinstance(result, np.ndarray):
+                self.last_result = result
+                if result.shape == (2,):
+                    result = np.expand_dims(result, 0)
+                if result.shape[0] == 2 and len(result.shape) == 2:
+                    if self.visible:
+                        transformed_vecs = coordinate_system.transform(result).T
+                        # width = 3 if element.hovered else 1
+                        for point in transformed_vecs:
+                            if self.render_kind == RenderKind.POINT:
+                                pg.draw.circle(screen, RED, point, 3)
+                            elif self.render_kind == RenderKind.LINE:
+                                pg.draw.line(screen, RED, zero_point, point, width=1)
+                else:
+                    self.error = 'Invalid result shape: {}'.format(result.shape)
+            elif result is not None:
+                self.error = 'result is not numpy array'
 
 
 class ElementBuffer:

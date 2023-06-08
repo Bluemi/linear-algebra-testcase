@@ -209,7 +209,8 @@ class UserInterface:
 
         def add_custom_transformed():
             num_transformed = len(element_buffer.transformed) + 1
-            element_buffer.transformed.append(CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE))
+            custom_transformed = CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE, element_buffer)
+            element_buffer.transformed.append(custom_transformed)
         add_custom_transformed_button.on_click = add_custom_transformed
         item_container.add_child(add_custom_transformed_button)
 

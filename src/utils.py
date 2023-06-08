@@ -26,3 +26,7 @@ def debug(arg):
     if isinstance(arg, np.ndarray):
         f_string = '{}:\n{}'
     print(f_string.format(varname, arg))
+
+
+def normalize_vec(vec):
+    return vec / (np.linalg.norm(vec) + 0.000000001)

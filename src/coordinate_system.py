@@ -33,6 +33,12 @@ class CoordinateSystem:
         translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
         self.coord = self.coord @ translation_mat
 
+    def get_zero_point(self):
+        """
+        Get the zero point of the coordinate system in screen coordinates.
+        """
+        return self.transform(np.array([0.0, 0.0]))
+
     def transform(self, mat: np.ndarray):
         """
         Transform the given matrix with the internal coordinates.
