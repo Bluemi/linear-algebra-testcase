@@ -52,10 +52,5 @@ class Controller:
         elif event.type == pg.WINDOWRESIZED:
             self.update_needed = True
         else:
+            # print(event)
             pass
-
-        self.handle_hovering(element_buffer, coordinate_system)
-
-    def handle_hovering(self, element_buffer: ElementBuffer, coordinate_system: CoordinateSystem):
-        for element in element_buffer:
-            element.hovered = element.is_hovered(self.mouse_position, coordinate_system)
