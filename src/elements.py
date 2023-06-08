@@ -74,10 +74,10 @@ class Vector(Element):
 
 
 class MultiVectorObject(Element):
-    def __init__(self, name: str, render_kind: RenderKind = RenderKind.POINT, num_points=40):
+    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.POINT):
         super().__init__(name, render_kind)
-        self.num_points = num_points
-        self.coordinates = self.generate_unit_circle(num_points)
+        self.coordinates = coordinates
+        self.original_coordinates = coordinates
 
     @staticmethod
     def generate_unit_circle(num_points, include_center=True):
@@ -85,7 +85,43 @@ class MultiVectorObject(Element):
         coordinates = np.vstack([np.cos(space), np.sin(space)])
         if include_center:
             coordinates = np.hstack([coordinates, [[0], [0]]])  # add center
-        return coordinates.T
+        return coordinates
+
+    @staticmethod
+    def generate_house():
+        lines = [
+            # sides
+            MultiVectorObject.generate_line([-1, -1], [-1, 1]),
+            MultiVectorObject.generate_line([-1, 1], [1, 1]),
+            MultiVectorObject.generate_line([1, 1], [1, -1]),
+            MultiVectorObject.generate_line([1, -1], [-1, -1]),
+
+            # roof
+            MultiVectorObject.generate_line([-1, 1], [0, 2], num_points=8),
+            MultiVectorObject.generate_line([0, 2], [1, 1], num_points=8),
+
+            # door
+            MultiVectorObject.generate_line([0, -1], [0, 0], num_points=5),
+            MultiVectorObject.generate_line([0, 0], [0.5, 0], num_points=2),
+            MultiVectorObject.generate_line([0.5, 0], [0.5, -1], num_points=5),
+
+            # windows
+            MultiVectorObject.generate_line([-0.8, 0.2], [-0.8, 0.8], num_points=4),
+            MultiVectorObject.generate_line([-0.8, 0.8], [-0.2, 0.8], num_points=4),
+            MultiVectorObject.generate_line([-0.2, 0.8], [-0.2, 0.2], num_points=4),
+            MultiVectorObject.generate_line([-0.2, 0.2], [-0.8, 0.2], num_points=4),
+
+            # chimney
+            MultiVectorObject.generate_line([-0.75, 1.25], [-0.75, 2], num_points=4),
+            MultiVectorObject.generate_line([-0.75, 2], [-0.37, 2], num_points=3),
+            MultiVectorObject.generate_line([-0.37, 2], [-0.37, 1.62], num_points=2),
+        ]
+        return np.concatenate(lines, axis=1)
+
+    @staticmethod
+    def generate_line(a, b, num_points=10, endpoint=False):
+        space = np.linspace(0, 1, num_points, endpoint=endpoint)
+        return np.reshape(a, (2, 1)) * (1 - space) + np.reshape(b, (2, 1)) * space
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         pos = coordinate_system.transform(self.get_array()).T
@@ -94,11 +130,10 @@ class MultiVectorObject(Element):
 
     def move_to(self, mouse_position: np.ndarray):
         mouse_position = snap(mouse_position)
-        self.coordinates = self.generate_unit_circle(self.num_points)
-        self.coordinates *= mouse_position
+        self.coordinates = self.original_coordinates * mouse_position
 
     def get_array(self):
-        return self.coordinates.T
+        return self.coordinates
 
 
 class Transform2D(Element):

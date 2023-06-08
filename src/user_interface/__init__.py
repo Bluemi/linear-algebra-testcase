@@ -81,9 +81,23 @@ class UserInterface:
 
         def add_circle():
             num_elements = len(element_buffer.elements) + 1
-            element_buffer.elements.append(MultiVectorObject('u{}'.format(num_elements)))
+            obj = MultiVectorObject('u{}'.format(num_elements), MultiVectorObject.generate_unit_circle(40))
+            element_buffer.elements.append(obj)
         add_circle_button.on_click = add_circle
         item_container.add_child(add_circle_button)
+
+        # add house button
+        add_house_button = Button(
+            'add_house_btn', (objects_label.rect.width + 80, 58),
+            label=Image('add_house_btn_label', (0, 0), Button.create_plus_image())
+        )
+
+        def add_house():
+            num_elements = len(element_buffer.elements) + 1
+            obj = MultiVectorObject('h{}'.format(num_elements), MultiVectorObject.generate_house())
+            element_buffer.elements.append(obj)
+        add_house_button.on_click = add_house
+        item_container.add_child(add_house_button)
 
         # add object elements
         self.item_y_position = 90
