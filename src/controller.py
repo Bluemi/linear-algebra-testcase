@@ -1,10 +1,8 @@
-from typing import Optional
-
 import numpy as np
 import pygame as pg
 
 from coordinate_system import CoordinateSystem
-from elements import ElementBuffer, Element, Transformed, CustomTransformed
+from elements import ElementBuffer
 from user_interface import UserInterface
 
 
@@ -14,9 +12,6 @@ class Controller:
         self.update_needed = True
         self.is_dragging = False
         self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
-
-        self.selected_transformed: Optional[Transformed] = None
-        self.get_definition_for: Optional = None
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
@@ -51,20 +46,7 @@ class Controller:
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
         elif event.type == pg.KEYUP:
-            if self.get_definition_for is not None:
-                if event.key == 27:
-                    self.get_definition_for.compile_definition()
-                    self.get_definition_for = None
-                    self.update_needed = True
-                else:
-                    custom_transformed: CustomTransformed = self.get_definition_for
-                    if event.key == 8:
-                        custom_transformed.set_definition(custom_transformed.definition[:-1])
-                    elif event.key == 127:
-                        custom_transformed.set_definition('')
-                    elif event.unicode:
-                        custom_transformed.set_definition(custom_transformed.definition + event.unicode)
-                    self.update_needed = True
+            self.update_needed = True
         elif event.type == pg.KEYDOWN:
             self.update_needed = True
         elif event.type == pg.WINDOWRESIZED:

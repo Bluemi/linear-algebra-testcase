@@ -2,9 +2,8 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Color
 
-from controller import Controller
 from coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from elements import ElementBuffer, CustomTransformed
+from elements import ElementBuffer
 from user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
@@ -13,12 +12,12 @@ TARGET_DIVIDENDS = [1, 2.5, 5, 10]
 
 def render(
     screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font,
-    controller: Controller, user_interface: UserInterface
+    user_interface: UserInterface
 ):
     screen.fill("black")
     draw_coordinate_system(screen, coordinate_system, render_font)
     element_buffer.render(screen, coordinate_system)
-    draw_user_interface(screen, user_interface, controller, render_font)
+    user_interface.render(screen)
 
 
 def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem, render_font):
@@ -92,22 +91,3 @@ def draw_coordinate_system(screen: Surface, coordinate_system: CoordinateSystem,
                 pos = coordinate_system.transform(np.array([0, y]))
                 pos += 10
                 screen.blit(font, pos)
-
-
-def draw_user_interface(screen: Surface, user_interface: UserInterface, controller: Controller,
-                        render_font: pg.font.Font):
-    user_interface.render(screen)
-
-    if controller.get_definition_for is not None:
-        draw_text_input(screen, controller, render_font)
-
-
-def draw_text_input(screen: Surface, controller: Controller, render_font):
-    pg.draw.rect(screen, pg.Color(128, 128, 128), pg.Rect(200, 200, screen.get_width() - 400, 200))
-    small_rect = pg.Rect(220, 200+80, screen.get_width() - 440, 40)
-    pg.draw.rect(screen, pg.Color(28, 28, 28), small_rect)
-
-    elem: CustomTransformed = controller.get_definition_for
-
-    font = render_font.render(elem.definition, True, pg.Color(220, 220, 220))
-    screen.blit(font, small_rect.move(3, 12))

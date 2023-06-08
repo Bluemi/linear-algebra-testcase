@@ -29,7 +29,7 @@ def main():
         user_interface.build(element_buffer)
 
         if controller.update_needed:
-            render(screen, coordinate_system, element_buffer, render_font, controller, user_interface)
+            render(screen, coordinate_system, element_buffer, render_font, user_interface)
             pg.display.flip()
             controller.update_needed = False
 
