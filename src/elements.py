@@ -73,7 +73,8 @@ class Element:
         :param coordinate_system: The coordinate system, that can be used to convert between screen and element space.
         :param mouse_position: The mouse position in screen space
         """
-        pass
+        if event.type == pg.MOUSEMOTION:
+            self.hovered = self.is_hovered(mouse_position, coordinate_system)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return False
@@ -108,6 +109,7 @@ class Vector(Element):
             pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        super().handle_event(event, coordinate_system, mouse_position)
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.is_hovered(mouse_position, coordinate_system):
                 self.dragged = True
@@ -192,6 +194,7 @@ class MultiVectorObject(Element):
                 pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=1)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        super().handle_event(event, coordinate_system, mouse_position)
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.is_hovered(mouse_position, coordinate_system):
                 self.dragged = True
