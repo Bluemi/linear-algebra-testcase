@@ -342,9 +342,13 @@ class Button(Item):
         self.label = label
 
     def render(self, surface: Surface):
-        pg.draw.rect(surface, self.color, self.rect)
+        color = self.color if self.hovered else self.color - gray(20)
+        pg.draw.rect(surface, color, self.rect)
         if self.label:
             sub_surface = surface.subsurface(self.rect)
+            if isinstance(self.label, Image):
+                alpha = 255 if self.hovered else 200
+                self.label.image.set_alpha(alpha)
             self.label.render(sub_surface)
 
     def update_from(self, other):
