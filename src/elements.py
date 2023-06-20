@@ -12,6 +12,8 @@ from utils import normalize_vec
 DRAG_SNAP_DISTANCE = 0.07
 RED = pg.Color(255, 80, 80)
 GREEN = pg.Color(100, 220, 100)
+CYAN = pg.Color(0, 220, 220)
+YELLOW = pg.Color(220, 220, 0)
 
 
 def snap(coordinates: np.ndarray):
@@ -40,10 +42,6 @@ class Element:
         self.render_kind = render_kind
         self.has_to_be_removed = False
         self.visible = True
-
-    @abc.abstractmethod
-    def move_to(self, mouse_position: np.ndarray):
-        return
 
     @abc.abstractmethod
     def get_array(self) -> np.ndarray:
@@ -90,9 +88,6 @@ class Vector(Element):
         pos = coordinate_system.transform(self.get_array()).flatten()
         diff = np.sum((mouse_position - pos)**2)
         return diff < 100
-
-    def move_to(self, mouse_position: np.ndarray):
-        self.coordinates = snap(mouse_position)
 
     def __repr__(self):
         return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
@@ -210,15 +205,20 @@ class Transform2D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
         self.matrix = np.eye(2)
+        self.dragged_index = None
 
     def get_array(self):
         return snap(self.matrix)
 
-    def move_to(self, mouse_position: np.ndarray):
-        pass
-
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        pass
+        transformed_vecs = coordinate_system.transform(self.get_array()).T
+        width = 3 if self.hovered else 1
+        for i, transformed_vec in enumerate(transformed_vecs):
+            color = CYAN if i == 0 else YELLOW
+            if self.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, color, transformed_vec, width)
+            elif self.render_kind == RenderKind.LINE:
+                pg.draw.line(screen, color, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
@@ -231,9 +231,6 @@ class Transform3D(Element):
 
     def get_array(self):
         return snap(self.matrix)
-
-    def move_to(self, mouse_position: np.ndarray):
-        pass
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         pass
@@ -256,9 +253,6 @@ class Transformed(Element):
 
     def get_array(self):
         return self.get_position()
-
-    def move_to(self, mouse_position: np.ndarray):
-        pass
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         new_vec = self.get_position()
@@ -300,9 +294,6 @@ class CustomTransformed(Element):
 
     def get_array(self):
         return self.last_result
-
-    def move_to(self, mouse_position: np.ndarray):
-        pass
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         zero_point = coordinate_system.get_zero_point()
@@ -367,7 +358,7 @@ class ElementBuffer:
         self.transformed = [t for t in self.transformed if not t.has_to_be_removed]
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        for element in chain(self.elements, self.transformed):
+        for element in chain(self.elements, self.transforms, self.transformed):
             if element.visible:
                 element.render(screen, coordinate_system)
 
