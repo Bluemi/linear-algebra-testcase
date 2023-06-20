@@ -220,8 +220,27 @@ class Transform2D(Element):
             elif self.render_kind == RenderKind.LINE:
                 pg.draw.line(screen, color, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        return self.get_hovered_index(mouse_position, coordinate_system) is not None
+
+    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        pos = coordinate_system.transform(self.get_array()).T
+        diff = np.sum((mouse_position - pos)**2, axis=1)
+        indices = np.where(diff < 100)[0]
+        if len(indices):
+            return indices[0]
+        return None
+
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
-        pass
+        super().handle_event(event, coordinate_system, mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            self.dragged_index = self.get_hovered_index(mouse_position, coordinate_system)
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged_index = None
+        elif event.type == pg.MOUSEMOTION:
+            if self.dragged_index is not None:
+                pos = coordinate_system.transform_inverse(np.array(event.pos))
+                self.matrix[:, self.dragged_index] = snap(pos)
 
 
 class Transform3D(Element):
@@ -363,7 +382,5 @@ class ElementBuffer:
                 element.render(screen, coordinate_system)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
-        for e in self.elements:
-            e.handle_event(event, coordinate_system, mouse_position)
-        for e in self.transformed:
+        for e in chain(self.elements, self.transforms, self.transformed):
             e.handle_event(event, coordinate_system, mouse_position)

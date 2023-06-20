@@ -1,3 +1,5 @@
+from itertools import chain
+
 import numpy as np
 import pygame as pg
 
@@ -25,7 +27,7 @@ class Controller:
         elif event.type == pg.MOUSEBUTTONDOWN:
             if not user_interface.ui_rect.collidepoint(self.mouse_position):
                 self.is_dragging = True
-                for element in element_buffer.elements:
+                for element in chain(element_buffer.elements, element_buffer.transforms):
                     if element.is_hovered(self.mouse_position, coordinate_system):
                         self.is_dragging = False
             self.update_needed = True
