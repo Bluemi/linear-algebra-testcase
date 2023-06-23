@@ -35,8 +35,6 @@ class Controller:
             self.is_dragging = False
             self.update_needed = True
         elif event.type == pg.MOUSEMOTION:
-            if self.is_dragging:
-                coordinate_system.translate(np.array(event.rel))
             self.mouse_position = np.array(event.pos, dtype=int)
             self.update_needed = True
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
