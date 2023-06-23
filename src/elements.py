@@ -14,6 +14,7 @@ RED = pg.Color(255, 80, 80)
 GREEN = pg.Color(100, 220, 100)
 CYAN = pg.Color(0, 220, 220)
 YELLOW = pg.Color(220, 220, 0)
+MAGENTA = pg.Color(220, 0, 220)
 
 
 def snap(coordinates: np.ndarray):
@@ -251,8 +252,27 @@ class Transform3D(Element):
     def get_array(self):
         return snap(self.matrix)
 
+    def get_render_locations(self, coordinate_system: CoordinateSystem):
+        vecs = self.get_array()[:2]
+        offset = vecs[:, 2].reshape(2, 1)
+        first_vecs = vecs[:, :2] + offset
+        first_vecs_transformed = coordinate_system.transform(first_vecs)
+        offset_transformed = coordinate_system.transform(offset)
+        return np.concatenate([first_vecs_transformed, offset_transformed.reshape(2, 1)], axis=1)
+
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        pass
+        render_locations = self.get_render_locations(coordinate_system).T
+        offset_location = render_locations[2]
+        width = 3 if self.hovered else 1
+        for i, transformed_vec in enumerate(render_locations):
+            color = [CYAN, YELLOW, MAGENTA][i]
+            if self.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, color, transformed_vec, width)
+            elif self.render_kind == RenderKind.LINE:
+                if i < 2:
+                    pg.draw.line(screen, color, offset_location, transformed_vec, width=width)
+                else:
+                    pg.draw.line(screen, color, coordinate_system.get_zero_point(), offset_location, width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
