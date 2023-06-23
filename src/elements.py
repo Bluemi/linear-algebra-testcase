@@ -207,14 +207,15 @@ class Transform2D(Element):
         super().__init__(name, render_kind)
         self.matrix = np.eye(2)
         self.dragged_index = None
+        self.hovered_index = None
 
     def get_array(self):
         return snap(self.matrix)
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         transformed_vecs = coordinate_system.transform(self.get_array()).T
-        width = 3 if self.hovered else 1
         for i, transformed_vec in enumerate(transformed_vecs):
+            width = 3 if self.hovered_index == i else 1
             color = CYAN if i == 0 else YELLOW
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
@@ -222,7 +223,7 @@ class Transform2D(Element):
                 pg.draw.line(screen, color, coordinate_system.get_zero_point(), transformed_vec, width=width)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        return self.get_hovered_index(mouse_position, coordinate_system) is not None
+        return self.hovered_index is not None
 
     def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         pos = coordinate_system.transform(self.get_array()).T
@@ -235,10 +236,11 @@ class Transform2D(Element):
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
         if event.type == pg.MOUSEBUTTONDOWN:
-            self.dragged_index = self.get_hovered_index(mouse_position, coordinate_system)
+            self.dragged_index = self.hovered_index
         elif event.type == pg.MOUSEBUTTONUP:
             self.dragged_index = None
         elif event.type == pg.MOUSEMOTION:
+            self.hovered_index = self.get_hovered_index(mouse_position, coordinate_system)
             if self.dragged_index is not None:
                 pos = coordinate_system.transform_inverse(np.array(event.pos))
                 self.matrix[:, self.dragged_index] = snap(pos)
@@ -248,6 +250,8 @@ class Transform3D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
         self.matrix = np.eye(3)
+        self.dragged_index = None
+        self.hovered_index = None
 
     def get_array(self):
         return snap(self.matrix)
@@ -263,8 +267,8 @@ class Transform3D(Element):
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
         render_locations = self.get_render_locations(coordinate_system).T
         offset_location = render_locations[2]
-        width = 3 if self.hovered else 1
         for i, transformed_vec in enumerate(render_locations):
+            width = 3 if self.hovered_index == i else 1
             color = [CYAN, YELLOW, MAGENTA][i]
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
@@ -274,8 +278,29 @@ class Transform3D(Element):
                 else:
                     pg.draw.line(screen, color, coordinate_system.get_zero_point(), offset_location, width=width)
 
+    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        pos = self.get_render_locations(coordinate_system).T
+        diff = np.sum((mouse_position - pos)**2, axis=1)
+        indices = np.where(diff < 100)[0]
+        if len(indices):
+            return indices[0]
+        return None
+
+    def is_hovered(self, _mouse_position: np.ndarray, _coordinate_system: CoordinateSystem):
+        return self.hovered_index is not None
+
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
-        pass
+        super().handle_event(event, coordinate_system, mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            self.dragged_index = self.hovered_index
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged_index = None
+        elif event.type == pg.MOUSEMOTION:
+            self.hovered_index = self.get_hovered_index(mouse_position, coordinate_system)
+            if self.dragged_index is not None:
+                pos = coordinate_system.transform_inverse(np.array(event.pos))
+                offset = np.zeros(2) if self.dragged_index == 2 else self.get_array()[:2, 2]
+                self.matrix[:2, self.dragged_index] = snap(pos - offset)
 
 
 class Transformed(Element):
