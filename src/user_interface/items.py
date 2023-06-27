@@ -6,7 +6,7 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from elements import Vector, Transform2D, Transform3D, Element
-from utils import gray, format_float, noop
+from utils import gray, format_float, noop, Colors
 
 
 class Item(ABC):
@@ -148,7 +148,7 @@ class Container(ItemContainer):
     def __init__(self, name: str, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True,
                  child_items: Optional[List[Item]] = None):
         super().__init__(name, rect, visible, child_items)
-        self.color = color if color is not None else gray(42)
+        self.color = color if color is not None else Colors.BACKGROUND
 
     def render(self, surface: Surface):
         pg.draw.rect(surface, self.color, self.rect)
@@ -210,7 +210,7 @@ class Label(Item):
         super().__init__(name, Rect(position[0], position[1], 1, 1), visible)
         self.text = text
         self.fontsize = fontsize
-        self.text_color = text_color if text_color is not None else gray(220)
+        self.text_color = text_color if text_color is not None else Colors.ACTIVE
         self.font_name = font_name if font_name else pg.font.get_default_font()
         self.font = pg.font.Font(self.font_name, self.fontsize)
         self.rendered_font = None
@@ -276,15 +276,15 @@ class Button(Item):
     def create_menu_image():
         menu_rect = pg.Rect(10, 10, 40, 40)
         menu_image = pg.Surface((menu_rect.width, menu_rect.height))
-        menu_image.fill(pg.Color(0, 0, 0))
+        menu_image.fill(Colors.BLACK)
         d = 40 // 6
         pg.draw.rect(
-            menu_image, pg.Color(140, 140, 140), Rect(0, 0, menu_rect.width, menu_rect.height),
+            menu_image, gray(140), Rect(0, 0, menu_rect.width, menu_rect.height),
             border_radius=4
         )
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), Rect(d, d+3, 40-2*d, d-2), border_radius=2)
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), Rect(d, d*3, 40-2*d, d-2), border_radius=2)
-        pg.draw.rect(menu_image, pg.Color(20, 20, 20), Rect(d, d*5-3, 40-2*d, d-2), border_radius=2)
+        pg.draw.rect(menu_image, gray(20), Rect(d, d+3, 40-2*d, d-2), border_radius=2)
+        pg.draw.rect(menu_image, gray(20), Rect(d, d*3, 40-2*d, d-2), border_radius=2)
+        pg.draw.rect(menu_image, gray(20), Rect(d, d*5-3, 40-2*d, d-2), border_radius=2)
         return menu_image
 
     @staticmethod
@@ -293,7 +293,7 @@ class Button(Item):
         image = pg.Surface((rect.width, rect.height))
 
         # background
-        pg.draw.rect(image, gray(100), rect, border_radius=4)
+        pg.draw.rect(image, Colors.INACTIVE, rect, border_radius=4)
 
         # horizontal line
         horizontal_rect = pg.Rect(rect.left + 4, rect.top + 11, rect.width - 8, 3)
@@ -380,7 +380,7 @@ class VectorItem(ItemContainer):
         super().__init__(name, rect)
         self.associated_vec: Vector = associated_vec
         self.fontsize = fontsize
-        text_color = text_color if text_color is not None else gray(220)
+        text_color = text_color if text_color is not None else Colors.ACTIVE
         self.font_name = font_name if font_name else pg.font.get_default_font()
         self.font: pg.font.Font = pg.font.Font(self.font_name, self.fontsize)
 
@@ -459,11 +459,12 @@ class TransformItem(ItemContainer):
         super().__init__(name, rect)
         self.associated_transform: Union[Transform2D, Transform3D] = associated_transform
         self.fontsize = fontsize
-        self.text_color = text_color if text_color is not None else gray(220)
+        if text_color is None:
+            text_color = Colors.ACTIVE if associated_transform.visible else Colors.INACTIVE
         self.font_name = font_name if font_name else pg.font.get_default_font()
         self.font: pg.font.Font = pg.font.Font(self.font_name, self.fontsize)
 
-        name_label = Label(self.name + '_name_label', (10, 20), self.associated_transform.name)
+        name_label = Label(f'{self.name}_name_label', (10, 20), self.associated_transform.name, text_color=text_color)
         self.add_child(name_label)
 
         # add number labels
@@ -472,8 +473,8 @@ class TransformItem(ItemContainer):
             line_of_labels = []
             for x in range(self.associated_transform.get_array().shape[1]):
                 number_label = Label(
-                    self.name + '_label_1', (50 + 50*x, 10 + 20*y),
-                    format_float(self.associated_transform.get_array()[y, x])
+                    f'{self.name}_label_{y}_{x}', (50 + 50*x, 10 + 20*y),
+                    format_float(self.associated_transform.get_array()[y, x]), text_color=text_color
                 )
                 line_of_labels.append(number_label)
                 self.add_child(number_label)

@@ -1,3 +1,5 @@
+import enum
+
 import pygame as pg
 import sys
 import inspect
@@ -10,6 +12,13 @@ def noop():
 
 def gray(b=127) -> pg.Color:
     return pg.Color(b, b, b)
+
+
+class Colors:
+    BLACK = gray(0)
+    INACTIVE = gray(100)
+    ACTIVE = gray(220)
+    BACKGROUND = gray(50)
 
 
 def format_float(f):

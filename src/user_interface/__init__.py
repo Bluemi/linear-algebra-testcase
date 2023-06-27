@@ -9,7 +9,7 @@ from elements import Transform2D, ElementBuffer, Transformed, Vector, MultiVecto
 from user_interface.items import Container, Label, Button, Image, Item, RootContainer, VectorItem, TransformItem, \
     ElementLabel
 from user_interface.window import Window
-from utils import gray
+from utils import Colors
 
 
 class UserInterface:
@@ -50,7 +50,7 @@ class UserInterface:
     def build(self, element_buffer: ElementBuffer):
         new_root = RootContainer()
         item_container = Container(
-            'item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=gray(50), visible=False
+            'item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=Colors.BACKGROUND, visible=False
         )
         new_root.add_child(item_container)
 
@@ -126,7 +126,7 @@ class UserInterface:
                 self._create_multiobject(element, item_container)
 
     def _create_multiobject(self, element, item_container):
-        text_color = gray(220) if element.visible else gray(100)
+        text_color = Colors.ACTIVE if element.visible else Colors.INACTIVE
         object_item = ElementLabel(
             element.name + '_ui', (20, self.item_y_position), element.name + '   Object', element,
             text_color=text_color
@@ -142,7 +142,7 @@ class UserInterface:
         self.item_y_position += object_item.rect.height + 1
 
     def _create_vector(self, element, item_container):
-        text_color = gray(220) if element.visible else gray(100)
+        text_color = Colors.ACTIVE if element.visible else Colors.INACTIVE
         vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element, text_color=text_color)
         item_container.add_child(vector_item)
 
@@ -243,7 +243,7 @@ class UserInterface:
     def _create_transformed(self, item_container, transformed):
         transform_str = transformed.transform.name if transformed.transform is not None else '< >'
         element_str = transformed.element.name if transformed.element is not None else '< >'
-        text_color = gray(220) if transformed.visible else gray(100)
+        text_color = Colors.ACTIVE if transformed.visible else Colors.INACTIVE
         transformed_item = ElementLabel(
             transformed.name + '_ui', (10, self.item_y_position),
             '{} = {} @ {}'.format(transformed.name, transform_str, element_str), transformed, text_color=text_color
@@ -264,7 +264,7 @@ class UserInterface:
                 text += ' [Err]:' + transformed.error
         else:
             text += ' = < >'
-        text_color = gray(220) if transformed.visible else gray(100)
+        text_color = Colors.ACTIVE if transformed.visible else Colors.INACTIVE
         transformed_item = ElementLabel(
             transformed.name + '_ui', (10, self.item_y_position), text, transformed, text_color=text_color
         )
