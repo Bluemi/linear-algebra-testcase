@@ -86,6 +86,8 @@ class Vector(Element):
         self.dragged = False
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        if not self.visible:
+            return False
         pos = coordinate_system.transform(self.get_array()).flatten()
         diff = np.sum((mouse_position - pos)**2)
         return diff < 100
@@ -169,6 +171,8 @@ class MultiVectorObject(Element):
         return np.reshape(a, (2, 1)) * (1 - space) + np.reshape(b, (2, 1)) * space
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        if not self.visible:
+            return False
         pos = coordinate_system.transform(self.get_array()).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
         return np.any(diff < 100)
@@ -225,7 +229,9 @@ class Transform2D(Element):
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return self.hovered_index is not None
 
-    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem) -> Optional[int]:
+        if not self.visible:
+            return None
         pos = coordinate_system.transform(self.get_array()).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
         indices = np.where(diff < 100)[0]
@@ -278,7 +284,9 @@ class Transform3D(Element):
                 else:
                     pg.draw.line(screen, color, coordinate_system.get_zero_point(), offset_location, width=width)
 
-    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+    def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem) -> Optional[int]:
+        if not self.visible:
+            return None
         pos = self.get_render_locations(coordinate_system).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
         indices = np.where(diff < 100)[0]
