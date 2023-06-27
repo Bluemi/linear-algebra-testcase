@@ -43,6 +43,11 @@ class UserInterface:
         else:
             self.root.handle_event(event, mouse_position)
             self.root.handle_every_event(event, mouse_position)
+            if event.type == pg.KEYDOWN:
+                if event.key == 27:
+                    item_container = self.root.get_item_by_name('item_container')
+                    assert item_container is not None, 'Item Container is None, but should always be present'
+                    item_container.visible = not item_container.visible
 
     def consuming_events(self, position: np.ndarray):
         return self.root.colliding(position) or bool(self.text_input_window)

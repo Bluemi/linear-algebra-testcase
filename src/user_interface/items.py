@@ -143,6 +143,24 @@ class ItemContainer(Item):
                 if child.name == other_child.name:
                     child.update_from(other_child)
 
+    def get_item_by_name(self, name: str) -> Optional[Item]:
+        """
+        Searches recursively for an item with the given name and returns it.
+
+        :param name: The name of the item.
+        :return: An item with the given name or None
+        """
+        if self.name == name:
+            return self
+        for c in self.child_items:
+            if c.name == name:
+                return c
+            if isinstance(c, ItemContainer):
+                item = c.get_item_by_name(name)
+                if item is not None:
+                    return item
+        return None
+
 
 class Container(ItemContainer):
     def __init__(self, name: str, rect: Rect, color: Optional[pg.Color] = None, visible: bool = True,
