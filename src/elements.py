@@ -74,6 +74,10 @@ class Element:
         """
         if event.type == pg.MOUSEMOTION:
             self.hovered = self.is_hovered(mouse_position, coordinate_system)
+        if event.type == pg.KEYDOWN:
+            if event.unicode == 'v':
+                if self.is_hovered(mouse_position, coordinate_system):
+                    self.visible = not self.visible
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return False
