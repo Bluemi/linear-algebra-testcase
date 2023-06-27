@@ -25,7 +25,7 @@ class Controller:
         if event.type == pg.QUIT:
             self.running = False
         elif event.type == pg.MOUSEBUTTONDOWN:
-            if not user_interface.ui_rect.collidepoint(self.mouse_position):
+            if not user_interface.consuming_events(self.mouse_position):
                 self.is_dragging = True
                 for element in chain(element_buffer.elements, element_buffer.transforms):
                     if element.is_hovered(self.mouse_position, coordinate_system):

@@ -185,8 +185,10 @@ class RootContainer(ItemContainer):
         Checks whether a child is colliding with the given position.
         :param position: The position to check (x, y).
         """
+        if not self.visible:
+            return False
         for c in self.child_items:
-            if c.rect.collidepoint(position):
+            if c.visible and c.rect.collidepoint(position):
                 return True
         return False
 
