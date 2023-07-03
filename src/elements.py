@@ -6,7 +6,7 @@ import pygame as pg
 import numpy as np
 import abc
 
-from coordinate_system import CoordinateSystem, transform as transform_f
+from coordinate_system import CoordinateSystem, transform_perspective as transform_p
 from utils import normalize_vec
 
 DRAG_SNAP_DISTANCE = 0.07
@@ -324,7 +324,7 @@ class Transformed(Element):
 
     def get_position(self):
         if self.element is not None and self.transform is not None:
-            return transform_f(self.transform.get_array(), self.element.get_array())
+            return transform_p(self.transform.get_array(), self.element.get_array())
         return None
 
     def get_array(self):
@@ -375,7 +375,7 @@ class CustomTransformed(Element):
         zero_point = coordinate_system.get_zero_point()
         if self.compiled_definition:
             # build eval locals
-            eval_locals = {'np': np, 'mm': transform_f, 'norm': normalize_vec}
+            eval_locals = {'np': np, 'mm': transform_p, 'norm': normalize_vec}
             for e in self.element_buffer.elements:
                 eval_locals[e.name] = e.get_array()
             for t in self.element_buffer.transforms:

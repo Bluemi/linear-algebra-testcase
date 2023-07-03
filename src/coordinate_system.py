@@ -53,7 +53,7 @@ class CoordinateSystem:
         return transform(inv, mat)
 
 
-def transform(transform_matrix: np.ndarray, mat: np.ndarray):
+def transform(transform_matrix: np.ndarray, mat: np.ndarray, perspective=False):
     """
     Transforms a given matrix with the given transformation matrix.
     Transformation matrix should be of shape [2, 2] or [3, 3]. If transformation matrix is of shape [3, 3] and the
@@ -64,6 +64,8 @@ def transform(transform_matrix: np.ndarray, mat: np.ndarray):
 
     :param transform_matrix: A np.ndarray with shape [2, 2] or [3, 3].
     :param mat: The matrix to convert of shape [2, N]. If mat is of shape [2,] it will be converted to [2, 1].
+    :param perspective: If perspective is True and the transform_mat is of shape (3, 3), the x- and y-axis of the
+                        resulting vector are divided by the resulting z axis.
     :return:
     """
     expanded = False
@@ -82,8 +84,18 @@ def transform(transform_matrix: np.ndarray, mat: np.ndarray):
         result = result[:, 0]
 
     if padded:
-        return result[:-1]
+        if perspective:
+            result = result[:-1] / result[-1]
+        else:
+            result = result[:-1]
     return result
+
+
+def transform_perspective(transform_matrix: np.ndarray, mat: np.ndarray) -> np.ndarray:
+    """
+    The same as transform, only with perspective set to true.
+    """
+    return transform(transform_matrix, mat, perspective=True)
 
 
 def test_single_dimension():
