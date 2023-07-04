@@ -103,7 +103,7 @@ class Vector(Element):
         return self.coordinates.reshape((2, 1))
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_vec = coordinate_system.transform(self.get_array())
+        transformed_vec = coordinate_system.transform(self.get_array()).flatten()
         width = 3 if self.hovered else 1
         if self.render_kind == RenderKind.POINT:
             pg.draw.circle(screen, GREEN, transformed_vec, width)
