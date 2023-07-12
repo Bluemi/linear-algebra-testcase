@@ -128,7 +128,6 @@ class MultiVectorObject(Element):
         super().__init__(name, render_kind)
         self.coordinates = coordinates
         self.original_coordinates = coordinates
-        self.dragged = False
 
     @staticmethod
     def generate_unit_circle(num_points, include_center=True):
@@ -199,15 +198,6 @@ class MultiVectorObject(Element):
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if self.is_hovered(mouse_position, coordinate_system):
-                self.dragged = True
-        elif event.type == pg.MOUSEBUTTONUP:
-            self.dragged = False
-        elif event.type == pg.MOUSEMOTION:
-            if self.dragged:
-                pos = coordinate_system.transform_inverse(np.array(event.pos))
-                self.move_to(pos.reshape((2, 1)))
 
 
 class Transform2D(Element):
@@ -406,7 +396,7 @@ class CustomTransformed(Element):
                             if self.render_kind == RenderKind.POINT:
                                 pg.draw.circle(screen, RED, point, 3)
                             elif self.render_kind == RenderKind.LINE:
-                                pg.draw.line(screen, RED, zero_point, point, width=1)
+                                pg.draw.line(screen, RED, zero_point, point.real, width=1)
                 else:
                     self.error = 'Invalid result shape: {}'.format(result.shape)
             elif result is not None:
