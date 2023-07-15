@@ -3,7 +3,7 @@ name = "linear-algebra-testcase"
 version = "0.1.0"
 description = "A small utility program in Python (pygame + numpy) to visualize concepts of linear transformations."
 authors = ["Bluemi <bruno.schilling@protonmail.ch>"]
-license = "GNU GENERAL PUBLIC LICENSE"
+license = "GPL-3.0-or-later"
 readme = "README.md"
 packages = [{include = "linear_algebra_testcase"}]
 
