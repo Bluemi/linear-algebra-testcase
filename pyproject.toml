@@ -13,7 +13,7 @@ numpy = "^1.25.1"
 pygame = "^2.5.0"
 
 [tool.poetry.scripts]
-linear-algebra-testcase = "linear_algebra_testcase.main:main()"
+linear-algebra-testcase = "linear_algebra_testcase.main:main"
 
 [build-system]
 requires = ["poetry-core"]

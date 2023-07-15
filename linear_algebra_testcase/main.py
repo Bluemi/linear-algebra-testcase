@@ -10,30 +10,41 @@ from render import render
 from user_interface import UserInterface
 
 
-def main():
-    pg.init()
-    screen = pg.display.set_mode(DEFAULT_SCREEN_SIZE)
-    controller = Controller()
-    coordinate_system = CoordinateSystem()
-    element_buffer = ElementBuffer()
-    render_font = pg.font.Font(pg.font.get_default_font(), 18)
-    user_interface = UserInterface()
+class Main:
+    def __init__(self):
+        pg.init()
+        self.screen = pg.display.set_mode(DEFAULT_SCREEN_SIZE)
+        self.controller = Controller()
+        self.coordinate_system = CoordinateSystem()
+        self.element_buffer = ElementBuffer()
+        self.render_font = pg.font.Font(pg.font.get_default_font(), 18)
+        self.user_interface = UserInterface()
 
-    while controller.running:
-        events = [pg.event.wait()]
-        for event in events + pg.event.get():
-            controller.handle_event(event, coordinate_system, element_buffer, user_interface)
+    def run(self):
+        while self.controller.running:
+            events = [pg.event.wait()]
+            events = events + pg.event.get()
+            self.handle_events(events)
 
-        element_buffer.remove_elements()
+        pg.quit()
 
-        user_interface.build(element_buffer)
+    def handle_events(self, events):
+        for event in events:
+            self.controller.handle_event(event, self.coordinate_system, self.element_buffer, self.user_interface)
 
-        if controller.update_needed:
-            render(screen, coordinate_system, element_buffer, render_font, user_interface)
+        self.element_buffer.remove_elements()
+
+        self.user_interface.build(self.element_buffer)
+
+        if self.controller.update_needed:
+            render(self.screen, self.coordinate_system, self.element_buffer, self.render_font, self.user_interface)
             pg.display.flip()
-            controller.update_needed = False
+            self.controller.update_needed = False
 
-    pg.quit()
+
+def main():
+    main_instance = Main()
+    main_instance.run()
 
 
 if __name__ == '__main__':
