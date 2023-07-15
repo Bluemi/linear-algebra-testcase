@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 ./src/main.py
+python3 ./linear-algebra-testcase/main.py
