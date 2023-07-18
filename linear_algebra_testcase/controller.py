@@ -39,7 +39,7 @@ class Controller:
             self.update_needed = True
         elif event.type == pg.WINDOWENTER or event.type == pg.WINDOWFOCUSGAINED:
             self.update_needed = True
-        elif event.type == pg.KEYUP:
+        elif event.type == pg.KEYUP:  # TODO: maybe remove
             self.update_needed = True
         elif event.type == pg.KEYDOWN:
             self.update_needed = True

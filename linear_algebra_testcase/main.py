@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import sys
 import pygame as pg
 
 from controller import Controller
@@ -44,7 +45,11 @@ class Main:
 
 def main():
     main_instance = Main()
-    main_instance.run()
+    if "pyodide" in sys.modules:
+        pg.event.register_event_callback(main_instance.handle_events)
+        return main_instance
+    else:
+        main_instance.run()
 
 
 if __name__ == '__main__':

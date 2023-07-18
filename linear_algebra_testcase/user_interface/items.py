@@ -212,7 +212,7 @@ class RootContainer(ItemContainer):
 
 
 class Label(Item):
-    def __init__(self, name: str, position: Union[np.ndarray or Tuple[int, int]], text: str, fontsize: int = 18,
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], text: str, fontsize: int = 18,
                  text_color: pg.Color = None, font_name: str = '', visible: bool = True):
         """
         Initiate a new item.
