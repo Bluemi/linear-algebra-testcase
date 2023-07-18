@@ -14,7 +14,7 @@ def render(
     screen: Surface, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer, render_font,
     user_interface: UserInterface
 ):
-    screen.fill("black")
+    screen.fill(pg.Color(0, 0, 0))
     draw_coordinate_system(screen, coordinate_system, render_font)
     element_buffer.render(screen, coordinate_system)
     user_interface.render(screen)
