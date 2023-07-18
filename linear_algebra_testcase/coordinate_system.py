@@ -2,7 +2,7 @@ from __future__ import annotations
 import numpy as np
 from typing import Optional
 
-from matrices import create_affine_transformation
+from linear_algebra_testcase.matrices import create_affine_transformation
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 

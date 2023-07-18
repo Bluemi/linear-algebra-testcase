@@ -3,9 +3,9 @@ from itertools import chain
 import numpy as np
 import pygame as pg
 
-from coordinate_system import CoordinateSystem
-from elements import ElementBuffer
-from user_interface import UserInterface
+from linear_algebra_testcase.coordinate_system import CoordinateSystem
+from linear_algebra_testcase.elements import ElementBuffer
+from linear_algebra_testcase.user_interface import UserInterface
 
 
 class Controller:

@@ -9,7 +9,7 @@ packages = [{include = "linear_algebra_testcase"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-numpy = "^1.25.1"
+numpy = "^1.24.1"
 pygame = "^2.5.0"
 
 [tool.poetry.scripts]

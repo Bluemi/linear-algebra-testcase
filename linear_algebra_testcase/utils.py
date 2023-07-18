@@ -1,5 +1,3 @@
-import enum
-
 import pygame as pg
 import sys
 import inspect

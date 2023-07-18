@@ -6,8 +6,8 @@ import pygame as pg
 import numpy as np
 import abc
 
-from coordinate_system import CoordinateSystem, transform_perspective as transform_p
-from utils import normalize_vec
+from linear_algebra_testcase.coordinate_system import CoordinateSystem, transform_perspective as transform_p
+from linear_algebra_testcase.utils import normalize_vec
 
 DRAG_SNAP_DISTANCE = 0.07
 RED = pg.Color(255, 80, 80)
