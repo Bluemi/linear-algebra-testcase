@@ -1,6 +1,8 @@
 # linear-algebra-testcase
 A small utility program in Python (pygame + numpy) to visualize concepts of linear transformations.
-View [3Blue1Brown](https://www.youtube.com/watch?v=kYB8IZa5AuE) for a nice introduction.
+Watch [3Blue1Brown](https://www.youtube.com/watch?v=kYB8IZa5AuE) for a nice introduction.
+
+There is now an [online version](https://bluemi.github.io/) of this program using [pyodide](https://github.com/pyodide/pyodide).
 
 
 ## Installation
