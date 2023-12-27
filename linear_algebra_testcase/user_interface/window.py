@@ -30,13 +30,13 @@ class Window:
 
     def handle_event(self, event: pg.event.Event):
         if event.type == pg.KEYDOWN:
-            if event.key == 27:
+            if event.key == pg.K_ESCAPE:
                 self.on_close(self.text)
                 self.has_to_close = True
             else:
-                if event.key == 8:
+                if event.key == pg.K_BACKSPACE:
                     self.text = self.text[:-1]
-                elif event.key == 127:
+                elif event.key == pg.K_DELETE:
                     self.text = ''
                 elif event.unicode:
                     self.text += event.unicode
