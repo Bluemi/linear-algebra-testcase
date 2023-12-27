@@ -342,20 +342,24 @@ class CustomTransformed(Element):
         self.definition = ""
         self.compiled_definition = None
         self.error = None
+        self.last_error = None
         self.last_result = None
         self.element_buffer = element_buffer
 
     def compile_definition(self):
         self.error = None
+        self.last_error = None
         try:
             self.compiled_definition = compile(self.definition, "<string>", "eval")
         except SyntaxError as e:
             self.compiled_definition = None
             self.error = repr(e)
+            self.last_error = self.error
 
     def set_definition(self, definition):
         self.definition = definition
         self.error = None
+        self.last_error = None
         self.compiled_definition = None
 
     def get_array(self):
@@ -379,7 +383,6 @@ class CustomTransformed(Element):
                 result = eval(self.compiled_definition, {}, eval_locals)
             except Exception as e:
                 self.error = repr(e)
-                print(self.error)
 
             self.last_result = result
             if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
@@ -401,6 +404,11 @@ class CustomTransformed(Element):
                     self.error = 'Invalid result shape: {}'.format(result.shape)
             elif result is not None:
                 self.error = 'result is not numpy array'
+
+        if self.error:
+            if not (self.last_error and self.error == self.last_error):
+                print(self.error)
+        self.last_error = self.error
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
