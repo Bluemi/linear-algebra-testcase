@@ -14,6 +14,7 @@ from linear_algebra_testcase.user_interface import UserInterface
 class Main:
     def __init__(self):
         pg.init()
+        pg.key.set_repeat(130, 25)
         self.screen = pg.display.set_mode(DEFAULT_SCREEN_SIZE)
         self.controller = Controller()
         self.coordinate_system = CoordinateSystem()
