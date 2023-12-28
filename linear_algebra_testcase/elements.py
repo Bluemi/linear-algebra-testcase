@@ -386,7 +386,10 @@ class CustomTransformed(Element):
 
             self.last_result = result
             if not isinstance(result, np.ndarray) and isinstance(result, Iterable):
-                result = np.array(result)
+                try:
+                    result = np.array(result)
+                except ValueError as e:
+                    self.error = repr(e)
             if isinstance(result, np.ndarray):
                 self.last_result = result
                 if result.shape == (2,):
