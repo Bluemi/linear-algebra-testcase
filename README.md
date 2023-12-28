@@ -15,7 +15,7 @@ cd linear-algebra-testcase
 pip3 install -r requirements.txt
 
 # run the programm
-python3 ./src/main.py
+python3 ./linear_algebra_testcase/main.py
 ```
 
 Consider using a virtual python-environment (eg [virtualenvwrapper](https://pypi.org/project/virtualenvwrapper)).
