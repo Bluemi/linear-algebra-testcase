@@ -18,15 +18,21 @@ class CoordinateSystem:
         mat = create_affine_transformation(translation, scale)
         return CoordinateSystem(mat)
 
-    def zoom_out(self):
+    def zoom_out(self, focus_point=None):
         scale = 1 / 1.2
+
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
 
-    def zoom_in(self):
+        if focus_point is not None:
+            self.translate((focus_point - self.get_zero_point()) * (1 - scale))
+
+    def zoom_in(self, focus_point=None):
         scale = 1.2
         scale_mat = create_affine_transformation(scale=scale)
         self.coord = self.coord @ scale_mat
+        if focus_point is not None:
+            self.translate((focus_point - self.get_zero_point()) * (1 - scale))
 
     def translate(self, direction):
         direction *= np.array([1, -1])

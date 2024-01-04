@@ -52,9 +52,9 @@ class Controller:
     def handle_coordinate_system(self, event, coordinate_system: CoordinateSystem):
         if event.type == pg.MOUSEWHEEL:
             if event.y < 0:
-                coordinate_system.zoom_out()
+                coordinate_system.zoom_out(self.mouse_position)
             else:
-                coordinate_system.zoom_in()
+                coordinate_system.zoom_in(self.mouse_position)
             self.update_needed = True
         elif event.type == pg.MOUSEMOTION:
             if self.is_dragging:
