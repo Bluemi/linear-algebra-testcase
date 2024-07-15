@@ -9,18 +9,18 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 class CoordinateSystem:
     def __init__(self, coord: Optional[np.ndarray] = None):
         if coord is None:
-            coord = create_affine_transformation(DEFAULT_SCREEN_SIZE/2, (100, -100))
+            coord = create_affine_transformation_3d(DEFAULT_SCREEN_SIZE/2, (100, -100, 100))
         self.coord: np.ndarray = coord
 
     @classmethod
     def create(cls, translation=0, scale=1) -> CoordinateSystem:
-        mat = create_affine_transformation(translation, scale)
+        mat = create_affine_transformation_3d(translation, scale)
         return CoordinateSystem(mat)
 
     def zoom_out(self, focus_point=None):
         scale = 1 / 1.2
 
-        scale_mat = create_affine_transformation(scale=scale)
+        scale_mat = create_affine_transformation_3d(scale=scale)
         self.coord = self.coord @ scale_mat
 
         if focus_point is not None:
@@ -28,14 +28,14 @@ class CoordinateSystem:
 
     def zoom_in(self, focus_point=None):
         scale = 1.2
-        scale_mat = create_affine_transformation(scale=scale)
+        scale_mat = create_affine_transformation_3d(scale=scale)
         self.coord = self.coord @ scale_mat
         if focus_point is not None:
             self.translate((focus_point - self.get_zero_point()) * (1 - scale))
 
     def translate(self, direction):
         direction *= np.array([1, -1])
-        translation_mat = create_affine_transformation(translation=direction / self.coord[0, 0])
+        translation_mat = create_affine_transformation_3d(translation=direction / self.coord[0, 0])
         self.coord = self.coord @ translation_mat
 
     def get_zero_point(self):
@@ -58,23 +58,25 @@ class CoordinateSystem:
         return transform(inv, mat)
 
 
-def create_affine_transformation(
-        translation: numbers.Number | Tuple[numbers.Number, numbers.Number] | np.ndarray = 0,
-        scale: numbers.Number | Tuple[numbers.Number, numbers.Number] | np.ndarray = 1
+def create_affine_transformation_3d(
+        translation: numbers.Number | Tuple[numbers.Number, numbers.Number, numbers.Number] | np.ndarray = 0,
+        scale: numbers.Number | Tuple[numbers.Number, numbers.Number, numbers.Number] | np.ndarray = 1
 ) -> np.ndarray:
     if isinstance(scale, numbers.Number):
-        scale = (scale, scale)
+        scale = (scale, scale, scale)
     scale_coord = np.array(
-        [[scale[0], 0, 0],
-         [0, scale[1], 0],
-         [0, 0, 1]]
+        [[scale[0], 0, 0, 0],
+         [0, scale[1], 0, 0],
+         [0, 0, scale[2], 0],
+         [0, 0, 0, 1]]
     )
     if isinstance(translation, numbers.Number):
-        translation = (translation, translation)
+        translation = (translation, translation, translation)
     translate_coord = np.array(
-        [[1, 0, translation[0]],
-         [0, 1, translation[1]],
-         [0, 0, 1]]
+        [[1, 0, 0, translation[0]],
+         [0, 1, 0, translation[1]],
+         [0, 0, 1, translation[2]],
+         [0, 0, 0, 1]]
     )
     return translate_coord @ scale_coord
 
