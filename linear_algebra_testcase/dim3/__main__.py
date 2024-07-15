@@ -4,10 +4,10 @@
 import sys
 import pygame as pg
 
-from .controller import Controller
-from .coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
-from .elements import ElementBuffer
-from .render import render
+from linear_algebra_testcase.dim2.controller import Controller
+from linear_algebra_testcase.dim2.coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
+from linear_algebra_testcase.dim2.elements import ElementBuffer
+from linear_algebra_testcase.dim3.render import render
 from linear_algebra_testcase.utils.user_interface import UserInterface
 
 

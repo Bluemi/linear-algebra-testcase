@@ -5,7 +5,7 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from ..elements import Vector, Transform2D, Transform3D, Element
+from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Transform3D, Element
 from linear_algebra_testcase.utils import gray, format_float, noop, Colors
 
 

@@ -4,8 +4,8 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from ..elements import (Transform2D, ElementBuffer, Transformed, Vector, MultiVectorObject, CustomTransformed,
-                        Transform3D, RenderKind)
+from linear_algebra_testcase.dim2.elements import (Transform2D, ElementBuffer, Transformed, Vector, MultiVectorObject,
+                                                   CustomTransformed, Transform3D, RenderKind)
 from ..user_interface.items import (Container, Label, Button, Image, RootContainer, VectorItem, TransformItem,
                                     ElementLabel)
 from ..user_interface.window import Window
