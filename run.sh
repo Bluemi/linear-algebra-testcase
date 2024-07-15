@@ -1,3 +1,3 @@
 #!/bin/bash
 
-poetry run linear_algebra_testcase/main.py
+poetry run python3 -m linear_algebra_testcase.dim2

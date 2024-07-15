@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 import pygame as pg
 
-from linear_algebra_testcase.utils import gray
+from ..utils import gray
 
 
 def on_close_noop(_text):

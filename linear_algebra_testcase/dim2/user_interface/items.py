@@ -5,8 +5,8 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from linear_algebra_testcase.elements import Vector, Transform2D, Transform3D, Element
-from linear_algebra_testcase.utils import gray, format_float, noop, Colors
+from ..elements import Vector, Transform2D, Transform3D, Element
+from ..utils import gray, format_float, noop, Colors
 
 
 class Item(ABC):
