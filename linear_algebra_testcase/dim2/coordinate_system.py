@@ -1,8 +1,7 @@
 from __future__ import annotations
+import numbers
 import numpy as np
-from typing import Optional
-
-from .matrices import create_affine_transformation
+from typing import Optional, Tuple
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
@@ -57,6 +56,27 @@ class CoordinateSystem:
     def transform_inverse(self, mat: np.ndarray):
         inv = np.linalg.pinv(self.coord)
         return transform(inv, mat)
+
+
+def create_affine_transformation(
+        translation: numbers.Number | Tuple[numbers.Number, numbers.Number] | np.ndarray = 0,
+        scale: numbers.Number | Tuple[numbers.Number, numbers.Number] | np.ndarray = 1
+) -> np.ndarray:
+    if isinstance(scale, numbers.Number):
+        scale = (scale, scale)
+    scale_coord = np.array(
+        [[scale[0], 0, 0],
+         [0, scale[1], 0],
+         [0, 0, 1]]
+    )
+    if isinstance(translation, numbers.Number):
+        translation = (translation, translation)
+    translate_coord = np.array(
+        [[1, 0, translation[0]],
+         [0, 1, translation[1]],
+         [0, 0, 1]]
+    )
+    return translate_coord @ scale_coord
 
 
 def transform(transform_matrix: np.ndarray, mat: np.ndarray, perspective=False):

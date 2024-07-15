@@ -9,7 +9,7 @@ from ..elements import (Transform2D, ElementBuffer, Transformed, Vector, MultiVe
 from ..user_interface.items import (Container, Label, Button, Image, RootContainer, VectorItem, TransformItem,
                                     ElementLabel)
 from ..user_interface.window import Window
-from ..utils import Colors
+from linear_algebra_testcase.utils import Colors
 
 
 class UserInterface:

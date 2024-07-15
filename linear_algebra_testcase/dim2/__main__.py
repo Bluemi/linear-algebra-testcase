@@ -47,6 +47,7 @@ class Main:
 def main():
     main_instance = Main()
     if "pyodide" in sys.modules:
+        # noinspection PyUnresolvedReferences
         pg.event.register_event_callback(main_instance.handle_events)
         return main_instance
     else:

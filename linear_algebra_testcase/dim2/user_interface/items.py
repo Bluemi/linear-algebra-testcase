@@ -6,7 +6,7 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from ..elements import Vector, Transform2D, Transform3D, Element
-from ..utils import gray, format_float, noop, Colors
+from linear_algebra_testcase.utils import gray, format_float, noop, Colors
 
 
 class Item(ABC):

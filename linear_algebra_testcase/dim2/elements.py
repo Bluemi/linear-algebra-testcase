@@ -7,7 +7,7 @@ import numpy as np
 import abc
 
 from .coordinate_system import CoordinateSystem, transform_perspective as transform_p
-from .utils import normalize_vec
+from linear_algebra_testcase.utils import normalize_vec
 
 DRAG_SNAP_DISTANCE = 0.07
 RED = pg.Color(255, 80, 80)
@@ -228,7 +228,7 @@ class Transform2D(Element):
             return None
         pos = coordinate_system.transform(self.get_array()).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
-        indices = np.where(diff < 100)[0]
+        indices: np.ndarray = np.where(diff < 100)[0]
         if len(indices):
             return indices[0]
         return None
@@ -283,7 +283,7 @@ class Transform3D(Element):
             return None
         pos = self.get_render_locations(coordinate_system).T
         diff = np.sum((mouse_position - pos)**2, axis=1)
-        indices = np.where(diff < 100)[0]
+        indices: np.ndarray = np.where(diff < 100)[0]
         if len(indices):
             return indices[0]
         return None
