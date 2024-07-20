@@ -11,9 +11,10 @@ packages = [{include = "linear_algebra_testcase"}]
 python = "^3.9"
 numpy = "^1.24.1"
 pygame = "^2.5.0"
+scipy = "^1.14.0"
 
 [tool.poetry.scripts]
-linear-algebra-testcase = "linear_algebra_testcase.main:main"
+linear-algebra-testcase-2d = "linear_algebra_testcase.dim2.__main__:main"
 
 [build-system]
 requires = ["poetry-core"]

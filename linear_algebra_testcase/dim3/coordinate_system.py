@@ -1,145 +1,89 @@
 from __future__ import annotations
-import numbers
 import numpy as np
-from typing import Optional, Tuple
+from scipy.spatial.transform import Rotation
+from typing import Optional
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
 
 class CoordinateSystem:
-    def __init__(self, coord: Optional[np.ndarray] = None):
-        if coord is None:
-            coord = create_affine_transformation_3d(DEFAULT_SCREEN_SIZE/2, (100, -100, 100))
-        self.coord: np.ndarray = coord
+    def __init__(self, position: Optional[np.ndarray] = None, rotation: Optional[Rotation] = None):
+        self.position = position if position is not None else np.array([0.0, 0.0, 0.0])
+        self.rotation = rotation if rotation is not None else Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
+        self.field_of_view = 60 / 180 * np.pi  # 60 degrees in radians
+        self.aspect_ratio = DEFAULT_SCREEN_SIZE[0] / DEFAULT_SCREEN_SIZE[1]
+        self.near = 0.1
+        self.far = 100.0
 
-    @classmethod
-    def create(cls, translation=0, scale=1) -> CoordinateSystem:
-        mat = create_affine_transformation_3d(translation, scale)
-        return CoordinateSystem(mat)
-
-    def zoom_out(self, focus_point=None):
-        scale = 1 / 1.2
-
-        scale_mat = create_affine_transformation_3d(scale=scale)
-        self.coord = self.coord @ scale_mat
-
-        if focus_point is not None:
-            self.translate((focus_point - self.get_zero_point()) * (1 - scale))
-
-    def zoom_in(self, focus_point=None):
-        scale = 1.2
-        scale_mat = create_affine_transformation_3d(scale=scale)
-        self.coord = self.coord @ scale_mat
-        if focus_point is not None:
-            self.translate((focus_point - self.get_zero_point()) * (1 - scale))
-
-    def translate(self, direction):
-        direction *= np.array([1, -1])
-        translation_mat = create_affine_transformation_3d(translation=direction / self.coord[0, 0])
-        self.coord = self.coord @ translation_mat
+    def rotate(self, rotation: Rotation):
+        self.rotation = self.rotation * rotation
 
     def get_zero_point(self):
         """
         Get the zero point of the coordinate system in screen coordinates.
         """
-        return self.transform(np.array([0.0, 0.0]))
+        return self.transform(np.array([0.0, 0.0, 0.0]))
 
-    def transform(self, mat: np.ndarray):
+    def transform(self, vecs: np.ndarray) -> np.ndarray:
         """
-        Transform the given matrix with the internal coordinates.
+        Transform the given world coordinates to screen coordinates.
 
-        :param mat: A list of column vectors with shape [2, N]. For vectors shape should be [2, 1].
-        :return: A list of column vectors with shape [2, N].
+        :param vecs: A list of vectors with shape [N, 3] or [3,].
+        :return: A list of vectors with shape [N, 3].
         """
-        return transform(self.coord, mat)
+        if vecs.shape == (3,):
+            vecs = vecs.reshape(1, 3)
 
-    def transform_inverse(self, mat: np.ndarray):
-        inv = np.linalg.pinv(self.coord)
-        return transform(inv, mat)
+        # pad to 4D vec
+        vecs = np.pad(vecs, ((0, 0), (0, 1)), 'constant', constant_values=1.0)
 
+        # first translate
+        translation_matrix = np.eye(4, dtype=float)
+        translation_matrix[:3, 3] = -self.position
 
-def create_affine_transformation_3d(
-        translation: numbers.Number | Tuple[numbers.Number, numbers.Number, numbers.Number] | np.ndarray = 0,
-        scale: numbers.Number | Tuple[numbers.Number, numbers.Number, numbers.Number] | np.ndarray = 1
-) -> np.ndarray:
-    if isinstance(scale, numbers.Number):
-        scale = (scale, scale, scale)
-    scale_coord = np.array(
-        [[scale[0], 0, 0, 0],
-         [0, scale[1], 0, 0],
-         [0, 0, scale[2], 0],
-         [0, 0, 0, 1]]
-    )
-    if isinstance(translation, numbers.Number):
-        translation = (translation, translation, translation)
-    translate_coord = np.array(
-        [[1, 0, 0, translation[0]],
-         [0, 1, 0, translation[1]],
-         [0, 0, 1, translation[2]],
-         [0, 0, 0, 1]]
-    )
-    return translate_coord @ scale_coord
+        # second rotate
+        # rotation_matrix = np.eye(4, dtype=float)
+        # rotation_matrix[:3, :3] = self.rotation.inv().as_matrix()
 
+        # view_matrix = rotation_matrix @ translation_matrix
+        view_matrix = translation_matrix
+        print('\nview_matrix\n', view_matrix)
 
-def transform(transform_matrix: np.ndarray, mat: np.ndarray, perspective=False):
-    """
-    Transforms a given matrix with the given transformation matrix.
-    Transformation matrix should be of shape [2, 2] or [3, 3]. If transformation matrix is of shape [3, 3] and the
-    matrix to transform is of shape [2, N], matrix will be padded with ones to shape [3, N].
-    If mat is of shape [2,] it will be converted to [2, 1].
+        projection_matrix = get_perspective_matrix(self.field_of_view, 16 / 9, self.near, self.far)
+        print('\nprojection_matrix\n', projection_matrix)
 
-    The calculation will be transform_matrix @ mat.
+        print('\nvecs\n', vecs)
+        proj_vecs = (projection_matrix @ view_matrix @ vecs.T).T
+        print('\nproj_vecs\n', proj_vecs)
+        proj_vecs[:, :3] /= proj_vecs[:, 3]
+        # TODO: perspective
+        # TODO: Clipping
 
-    :param transform_matrix: A np.ndarray with shape [2, 2] or [3, 3].
-    :param mat: The matrix to convert of shape [2, N]. If mat is of shape [2,] it will be converted to [2, 1].
-    :param perspective: If perspective is True and the transform_mat is of shape (3, 3), the x- and y-axis of the
-                        resulting vector are divided by the resulting z axis.
-    :return:
-    """
-    expanded = False
-    if mat.shape == (2,):
-        mat = mat.reshape((2, 1))
-        expanded = True
-
-    padded = False
-    if transform_matrix.shape == (3, 3):
-        mat = np.concatenate([mat, np.ones((1, mat.shape[1]))], axis=0)
-        padded = True
-
-    result = transform_matrix @ mat
-
-    if expanded:
-        result = result[:, 0]
-
-    if padded:
-        if perspective:
-            result = result[:-1] / result[-1]
-        else:
-            result = result[:-1]
-    return result
+        return proj_vecs.T[:, :3]
 
 
-def transform_perspective(transform_matrix: np.ndarray, mat: np.ndarray) -> np.ndarray:
-    """
-    The same as transform, only with perspective set to true.
-    """
-    return transform(transform_matrix, mat, perspective=True)
+def get_perspective_matrix(angle: float, ratio: float, near: float, far: float) -> np.ndarray:
+    perspective = np.zeros((4, 4))
+    tan_half_angle = np.tan(angle / 2)
+
+    perspective[0, 0] = 1 / (ratio * tan_half_angle)
+    perspective[1, 1] = 1 / tan_half_angle
+    perspective[2, 2] = -(far + near) / (far - near)
+    perspective[2, 3] = -1
+    perspective[3, 2] = -(2 * far * near) / (far - near)
+    return perspective
 
 
-def test_single_dimension():
-    coordinate_system = CoordinateSystem()
+def test_coordinate_system():
+    system = CoordinateSystem(np.array([0.0, 0.0, 2.0]), Rotation.from_quat([0.0, 0.0, 0.0, 1.0]))
 
-    line_coords1 = np.array([100, -100])
-    line_coords2 = np.array([-100, 100])
-    line_coords1 = coordinate_system.transform(line_coords1)
-    line_coords2 = coordinate_system.transform(line_coords2)
-    assert tuple(line_coords1.shape) == (2,), line_coords1.shape
-    assert tuple(line_coords2.shape) == (2,), line_coords2.shape
+    # vecs = np.random.random((5, 3))
+    vecs = np.eye(3)
+
+    transformed_vecs = system.transform(vecs)
+
+    print('\ntransformed_vecs\n', transformed_vecs, '\nshape:', transformed_vecs.shape)
 
 
-def test_multi_dimension():
-    coordinate_system = CoordinateSystem()
-
-    line_coords = np.array([[-100, -100], [100, 100], [200, 200]]).T
-    line_coords = coordinate_system.transform(line_coords)
-    assert line_coords.shape == (2, 3)
+if __name__ == '__main__':
+    test_coordinate_system()
