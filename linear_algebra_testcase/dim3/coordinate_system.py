@@ -49,11 +49,12 @@ class CoordinateSystem:
         """
         return self.transform(np.array([0.0, 0.0, 0.0]))
 
-    def transform(self, vecs: np.ndarray) -> np.ndarray:
+    def transform(self, vecs: np.ndarray, clip: bool = True) -> np.ndarray:
         """
         Transform the given world coordinates to screen coordinates.
 
         :param vecs: A list of vectors with shape [N, 3] or [3,].
+        :param clip: Filter out vectors that are outside of the clip space.
         :return: A list of vectors with shape [N, 3]. The z coordinate can be ignored for rendering on screen
         """
         # prepare vecs
@@ -67,6 +68,12 @@ class CoordinateSystem:
 
         # perspective division
         proj_vecs[:, :3] = proj_vecs[:, :3] / proj_vecs[:, 3].reshape(-1, 1)
+        proj_vecs = proj_vecs[:, :3]  # remove w-coordinate
+
+        # clip outside vectors
+        if clip:
+            valid_indices = np.all(np.logical_and(proj_vecs < 1.0, proj_vecs > -1.0), axis=1)
+            proj_vecs = proj_vecs[valid_indices]
 
         # convert to screen space
         proj_vecs[:, 1] *= -1.0  # invert y-axis
@@ -74,7 +81,7 @@ class CoordinateSystem:
         proj_vecs[:, 0] *= self.screen_size[0]  # scale to screen size
         proj_vecs[:, 1] *= self.screen_size[1]  # scale to screen size
 
-        return proj_vecs[:, :3]  # remove w-coordinate
+        return proj_vecs
 
     def get_projection_matrix(self):
         projection_matrix = get_perspective_matrix(self.field_of_view, 16 / 9, self.near, self.far)
