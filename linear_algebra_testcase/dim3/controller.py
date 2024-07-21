@@ -14,6 +14,8 @@ class Controller:
         self.running = True
         self.is_dragging = False
         self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
+        pg.event.set_grab(True)
+        pg.mouse.set_visible(False)
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
@@ -61,16 +63,7 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
 
 
 def handle_coordinate_system_events(event, coordinate_system: CoordinateSystem):
-    screen_info = pg.display.Info()
-    screen_center = np.array([screen_info.current_w // 2, screen_info.current_h // 2], dtype=int)
-
-    pg.mouse.set_pos(*screen_center)
-
     if event.type == pg.MOUSEMOTION:
         rotation_speed = 0.01
         rotation = np.array(event.rel, dtype=float) * -rotation_speed
-        # rotation = Rotation.from_euler('yx', rotation)
         coordinate_system.rotate(rotation)
-
-        # keep mouse in center of screen
-        pg.mouse.set_pos(*screen_center)
