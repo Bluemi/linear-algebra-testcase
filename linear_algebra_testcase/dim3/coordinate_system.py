@@ -11,19 +11,37 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 class CoordinateSystem:
     def __init__(self, position: Optional[np.ndarray] = None, rotation: Optional[Rotation] = None):
         self.position = position if position is not None else np.array([0.0, 0.0, 0.0])
+        self.screen_size = np.copy(DEFAULT_SCREEN_SIZE)
+
+        # rotations
         self.yaw_rotation = Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
         self.pitch_rotation = Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
         self.rotation = self.yaw_rotation * self.pitch_rotation
+
+        # projection info
         self.field_of_view = 60 / 180 * np.pi  # 60 degrees in radians
         self.aspect_ratio = DEFAULT_SCREEN_SIZE[0] / DEFAULT_SCREEN_SIZE[1]
         self.near = 0.1
         self.far = 100.0
-        self.screen_size = np.copy(DEFAULT_SCREEN_SIZE)
+
+        # transformation matrices
+        self.projection_matrix = self.get_projection_matrix()
+        self.transformation_matrix = self.get_projection_matrix() @ self.get_view_matrix()
 
     def rotate(self, rotation: np.ndarray):
         self.yaw_rotation = self.yaw_rotation * Rotation.from_quat([0.0, rotation[0], 0.0, 1.0])
         self.pitch_rotation = self.pitch_rotation * Rotation.from_quat([rotation[1], 0.0, 0.0, 1.0])
         self.rotation = self.yaw_rotation * self.pitch_rotation
+        self._update_matrix()
+
+    def move(self, direction: np.ndarray, absolute: bool = False):
+        if not absolute:
+            direction = self.rotation.apply(direction)
+        self.position += direction
+        self._update_matrix()
+
+    def _update_matrix(self):
+        self.transformation_matrix = self.projection_matrix @ self.get_view_matrix()
 
     def get_zero_point(self):
         """
@@ -38,45 +56,39 @@ class CoordinateSystem:
         :param vecs: A list of vectors with shape [N, 3] or [3,].
         :return: A list of vectors with shape [N, 3]. The z coordinate can be ignored for rendering on screen
         """
+        # prepare vecs
         if vecs.shape == (3,):
             vecs = vecs.reshape(1, 3)
-
         # pad to 4D vec
         vecs = np.pad(vecs, ((0, 0), (0, 1)), 'constant', constant_values=1.0)
 
-        # first translate
-        translation_matrix = np.eye(4, dtype=float)
-        translation_matrix[:3, 3] = -self.position
-
-        # second rotate
-        rotation_matrix = np.eye(4, dtype=float)
-        rotation_matrix[:3, :3] = self.rotation.inv().as_matrix()
-
-        view_matrix = rotation_matrix @ translation_matrix
-        # print('\nview_matrix\n', view_matrix)
-
-        projection_matrix = get_perspective_matrix(self.field_of_view, 16 / 9, self.near, self.far)
-        # print('\nprojection_matrix\n', projection_matrix)
-
-        # print('\nvecs\n', vecs)
-        proj_vecs = (projection_matrix @ view_matrix @ vecs.T).T
-        # print('\nproj_vecs\n', proj_vecs)
+        # projection
+        proj_vecs = (self.transformation_matrix @ vecs.T).T
 
         # perspective division
         proj_vecs[:, :3] = proj_vecs[:, :3] / proj_vecs[:, 3].reshape(-1, 1)
 
         # convert to screen space
-        proj_vecs[:, 1] *= -1.0  # invert y axis
-        proj_vecs[:, :2] = (proj_vecs[:, :2] + 1) / 2.0
-        proj_vecs[:, 0] *= self.screen_size[0]
-        proj_vecs[:, 1] *= self.screen_size[1]
+        proj_vecs[:, 1] *= -1.0  # invert y-axis
+        proj_vecs[:, :2] = (proj_vecs[:, :2] + 1) / 2.0  # scale from [-1, 1] to [0, 1]
+        proj_vecs[:, 0] *= self.screen_size[0]  # scale to screen size
+        proj_vecs[:, 1] *= self.screen_size[1]  # scale to screen size
 
-        return proj_vecs[:, :3]
+        return proj_vecs[:, :3]  # remove w-coordinate
 
-    def move(self, direction: np.ndarray, absolute: bool = False):
-        if not absolute:
-            direction = self.rotation.apply(direction)
-        self.position += direction
+    def get_projection_matrix(self):
+        projection_matrix = get_perspective_matrix(self.field_of_view, 16 / 9, self.near, self.far)
+        return projection_matrix
+
+    def get_view_matrix(self):
+        # first translate
+        translation_matrix = np.eye(4, dtype=float)
+        translation_matrix[:3, 3] = -self.position
+        # second rotate
+        rotation_matrix = np.eye(4, dtype=float)
+        rotation_matrix[:3, :3] = self.rotation.inv().as_matrix()
+        view_matrix = rotation_matrix @ translation_matrix
+        return view_matrix
 
 
 def get_perspective_matrix(angle: float, ratio: float, near: float, far: float) -> np.ndarray:
@@ -86,42 +98,30 @@ def get_perspective_matrix(angle: float, ratio: float, near: float, far: float) 
     perspective[0, 0] = 1 / (ratio * tan_half_angle)
     perspective[1, 1] = 1 / tan_half_angle
     perspective[2, 2] = -(far + near) / (far - near)
-    perspective[2, 3] = -1
-    perspective[3, 2] = -(2 * far * near) / (far - near)
-    return perspective.T  # TODO place values at the right spot immediately
+    perspective[3, 2] = -1
+    perspective[2, 3] = -(2 * far * near) / (far - near)
+    return perspective
 
 
 def get_lookat(position: np.ndarray, target: np.ndarray, world_up: np.ndarray):
-    # 1. Position = known
-    # 2. Calculate cameraDirection
+    # calculate camera-direction
     z_axis = normalize_vec(position - target)
-    # 3. Get positive right axis vector
+    # get positive right axis vector
     x_axis = normalize_vec(np.cross(normalize_vec(world_up), z_axis))
-    # 4. Calculate camera up vector
+    # calculate camera up vector
     y_axis = np.cross(z_axis, x_axis)
 
-    # Create translation and rotation matrix
-    # In glm we access elements as mat[col][row] due to column-major layout
-    translation = np.eye(4)  # Identity matrix by default
-    translation[3][0] = -position[0]  # Third column, first row
-    translation[3][1] = -position[1]
-    translation[3][2] = -position[2]
+    # create translation and rotation matrix
+    translation = np.eye(4)
+    # translation[3, :3] = -position
+    translation[:3, 3] = -position
+
     rotation = np.eye(4)
-    rotation[0][0] = x_axis[0]  # First column, first row
-    rotation[1][0] = x_axis[1]
-    rotation[2][0] = x_axis[2]
-    rotation[0][1] = y_axis[0]  # First column, second row
-    rotation[1][1] = y_axis[1]
-    rotation[2][1] = y_axis[2]
-    rotation[0][2] = z_axis[0]  # First column, third row
-    rotation[1][2] = z_axis[1]
-    rotation[2][2] = z_axis[2]
+    rotation[0, :3] = x_axis
+    rotation[1, :3] = y_axis
+    rotation[2, :3] = z_axis
 
-    # print('translation:\n', translation)
-    # print('\nrotation:\n', rotation)
-
-    # Return lookAt matrix as combination of translation and rotation matrix
-    return (rotation @ translation).T  # Remember to read from right to left (first translation then rotation)
+    return translation @ rotation
 
 
 def test_coordinate_system():
