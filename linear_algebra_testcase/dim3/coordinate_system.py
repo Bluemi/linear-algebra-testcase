@@ -20,7 +20,7 @@ class CoordinateSystem:
 
     def rotate(self, rotation: Rotation):
         q = (self.rotation * rotation).as_quat()
-        q[2] = 0  # remove z rotation
+        # q[2] = 0  # remove z rotation
         self.rotation = Rotation.from_quat(q)
 
     def get_zero_point(self):
