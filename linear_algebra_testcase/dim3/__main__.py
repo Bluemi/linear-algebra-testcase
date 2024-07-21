@@ -2,11 +2,13 @@
 
 
 import sys
+
+import numpy as np
 import pygame as pg
 
-from linear_algebra_testcase.dim2.controller import Controller
-from linear_algebra_testcase.dim2.coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
-from linear_algebra_testcase.dim2.elements import ElementBuffer
+from linear_algebra_testcase.dim3.controller import Controller
+from linear_algebra_testcase.dim3.coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
+from linear_algebra_testcase.dim3.elements import ElementBuffer
 from linear_algebra_testcase.dim3.render import render
 from linear_algebra_testcase.utils.user_interface import UserInterface
 
@@ -17,16 +19,18 @@ class Main:
         pg.key.set_repeat(130, 25)
         self.screen = pg.display.set_mode(DEFAULT_SCREEN_SIZE)
         self.controller = Controller()
-        self.coordinate_system = CoordinateSystem()
+        self.coordinate_system = CoordinateSystem(position=np.array([0.0, 0.0, 2.0]))
         self.element_buffer = ElementBuffer()
         self.render_font = pg.font.Font(pg.font.get_default_font(), 18)
         self.user_interface = UserInterface()
 
     def run(self):
         while self.controller.running:
-            events = [pg.event.wait()]
-            events = events + pg.event.get()
-            self.handle_events(events)
+            self.handle_events(pg.event.get())
+
+            # render
+            render(self.screen, self.coordinate_system, self.element_buffer, self.render_font, self.user_interface)
+            pg.display.flip()
 
         pg.quit()
 
@@ -37,11 +41,6 @@ class Main:
         self.element_buffer.remove_elements()
 
         self.user_interface.build(self.element_buffer)
-
-        if self.controller.update_needed:
-            render(self.screen, self.coordinate_system, self.element_buffer, self.render_font, self.user_interface)
-            pg.display.flip()
-            self.controller.update_needed = False
 
 
 def main():

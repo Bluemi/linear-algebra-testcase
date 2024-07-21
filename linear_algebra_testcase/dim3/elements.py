@@ -1,12 +1,12 @@
 import enum
 from itertools import chain
-from typing import Iterator, Optional, Union, Iterable, List
+from typing import Iterator, Optional, Union, Iterable, List, Self
 import pygame as pg
 
 import numpy as np
 import abc
 
-from .coordinate_system import CoordinateSystem, transform_perspective as transform_p
+from .coordinate_system import CoordinateSystem
 from linear_algebra_testcase.utils import normalize_vec
 
 DRAG_SNAP_DISTANCE = 0.07
@@ -83,32 +83,54 @@ class Element:
         return False
 
 
-class Vector(Element):
+class Cube(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
-        self.coordinates = coordinates.reshape((2, 1))
+        self.coordinates = coordinates
         self.dragged = False
+
+    @classmethod
+    def create_cube(
+            cls, name: str, bot_left_back: np.ndarray, top_right_front: np.ndarray,
+            render_kind: RenderKind = RenderKind.POINT
+    ) -> Self:
+        x1, y1, z1 = bot_left_back
+        x2, y2, z2 = top_right_front
+        coordinates = np.array([
+            [x1, y1, z1],
+            [x2, y1, z1],
+            [x2, y2, z1],
+            [x1, y2, z1],
+            [x1, y1, z2],
+            [x2, y1, z2],
+            [x2, y2, z2],
+            [x1, y2, z2]
+        ])
+        return Cube(name, coordinates, render_kind)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         if not self.visible:
             return False
-        pos = coordinate_system.transform(self.get_array()).flatten()
-        diff = np.sum((mouse_position - pos)**2)
-        return diff < 100
+        pos = coordinate_system.transform(self.coordinates)[:, :2]
+        diffs = np.sum((mouse_position.reshape(1, 2) - pos)**2, axis=1)
+        return np.any(diffs < 100)
 
     def __repr__(self):
         return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
 
     def get_array(self):
-        return self.coordinates.reshape((2, 1))
+        return self.coordinates
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_vec = coordinate_system.transform(self.get_array()).flatten()
-        width = 3 if self.hovered else 1
+        transformed_points = coordinate_system.transform(self.coordinates)[:, :2]
+        # width = 3 if self.hovered else 1
+        width = 3
         if self.render_kind == RenderKind.POINT:
-            pg.draw.circle(screen, GREEN, transformed_vec, width)
+            for point in transformed_points:
+                pg.draw.circle(screen, GREEN, point, width)
         elif self.render_kind == RenderKind.LINE:
-            pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec, width=width)
+            for point in transformed_points:
+                pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
@@ -306,15 +328,16 @@ class Transform3D(Element):
 
 
 class Transformed(Element):
-    def __init__(self, name: str, element: Union[None, Vector, MultiVectorObject], transform: Optional[Transform2D],
+    def __init__(self, name: str, element: Union[None, Cube], transform: Optional[Transform2D],
                  render_kind: RenderKind):
         super().__init__(name, render_kind)
         self.element = element
         self.transform = transform
 
     def get_position(self):
-        if self.element is not None and self.transform is not None:
-            return transform_p(self.transform.get_array(), self.element.get_array())
+        # TODO
+        # if self.element is not None and self.transform is not None:
+            # return transform_p(self.transform.get_array(), self.element.get_array())
         return None
 
     def get_array(self):
@@ -369,7 +392,8 @@ class CustomTransformed(Element):
         zero_point = coordinate_system.get_zero_point()
         if self.compiled_definition:
             # build eval locals
-            eval_locals = {'np': np, 'mm': transform_p, 'norm': normalize_vec}
+            # eval_locals = {'np': np, 'mm': transform_p, 'norm': normalize_vec}
+            eval_locals = {'np': np, 'norm': normalize_vec}
             for e in self.element_buffer.elements:
                 eval_locals[e.name] = e.get_array()
             for t in self.element_buffer.transforms:
@@ -423,11 +447,17 @@ class ElementBuffer:
         self.transforms: List[Element] = []
         self.transformed: List[Element] = []
 
+        self.create_example_elements()
+
     def __iter__(self) -> Iterator[Element]:
         return iter(self.elements)
 
     def create_example_elements(self):
-        self.elements.append(Vector('v1', np.array([1, 1])))
+        self.elements.append(
+            Cube.create_cube(
+                'c1', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5, render_kind=RenderKind.POINT
+            )
+        )
 
     def remove_elements(self):
         self.elements = [e for e in self.elements if not e.has_to_be_removed]
