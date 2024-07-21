@@ -60,7 +60,7 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
         coordinate_system.move(np.array([0.0, -speed, 0.0]))
 
 
-def handle_coordinate_system_events(event, coordinate_system):
+def handle_coordinate_system_events(event, coordinate_system: CoordinateSystem):
     screen_info = pg.display.Info()
     screen_center = np.array([screen_info.current_w // 2, screen_info.current_h // 2], dtype=int)
 
