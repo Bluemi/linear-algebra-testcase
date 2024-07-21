@@ -126,8 +126,9 @@ class Cube(Element):
         # width = 3 if self.hovered else 1
         width = 3
         if self.render_kind == RenderKind.POINT:
-            for point in transformed_points:
-                pg.draw.circle(screen, GREEN, point, width)
+            for index, point in enumerate(transformed_points):
+                color = GREEN if index in (0, 1, 4, 5) else RED
+                pg.draw.circle(screen, color, point, width)
         elif self.render_kind == RenderKind.LINE:
             for point in transformed_points:
                 pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=width)

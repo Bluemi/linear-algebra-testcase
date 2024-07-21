@@ -62,6 +62,7 @@ class CoordinateSystem:
         proj_vecs[:, :3] = proj_vecs[:, :3] / proj_vecs[:, 3].reshape(-1, 1)
 
         # convert to screen space
+        proj_vecs[:, 1] *= -1.0  # invert y axis
         proj_vecs[:, :2] = (proj_vecs[:, :2] + 1) / 2.0
         proj_vecs[:, 0] *= self.screen_size[0]
         proj_vecs[:, 1] *= self.screen_size[1]

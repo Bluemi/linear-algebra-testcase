@@ -54,7 +54,5 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
         coordinate_system.move(np.array([speed, 0.0, 0.0]))
     if keys[pg.K_SPACE]:
         coordinate_system.move(np.array([0.0, speed, 0.0]))
-    if keys[pg.KMOD_CTRL]:
+    if keys[pg.K_LCTRL]:
         coordinate_system.move(np.array([0.0, -speed, 0.0]))
-
-    print(coordinate_system.position)
