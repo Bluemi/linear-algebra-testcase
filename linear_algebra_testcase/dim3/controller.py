@@ -19,7 +19,6 @@ class Controller:
         user_interface.handle_event(event, self.mouse_position)
         if not user_interface.consuming_events(self.mouse_position):
             element_buffer.handle_event(event, coordinate_system, self.mouse_position)
-            self.handle_coordinate_system(event, coordinate_system)
 
         if event.type == pg.QUIT:
             self.running = False
@@ -37,12 +36,25 @@ class Controller:
             # print(event)
             pass
 
-    def handle_coordinate_system(self, event, coordinate_system: CoordinateSystem):
-        if event.type == pg.MOUSEWHEEL:
-            if event.y < 0:
-                coordinate_system.zoom_out(self.mouse_position)
-            else:
-                coordinate_system.zoom_in(self.mouse_position)
-        elif event.type == pg.MOUSEMOTION:
-            if self.is_dragging:
-                coordinate_system.translate(np.array(event.rel))
+    def tick(self, coordinate_system, user_interface):
+        if not user_interface.consuming_events(self.mouse_position):
+            handle_coordinate_system(coordinate_system)
+
+
+def handle_coordinate_system(coordinate_system: CoordinateSystem):
+    keys = pg.key.get_pressed()
+    speed = 0.02
+    if keys[pg.K_w]:
+        coordinate_system.move(np.array([0.0, 0.0, -speed]))
+    if keys[pg.K_a]:
+        coordinate_system.move(np.array([-speed, 0.0, 0.0]))
+    if keys[pg.K_s]:
+        coordinate_system.move(np.array([0.0, 0.0, speed]))
+    if keys[pg.K_d]:
+        coordinate_system.move(np.array([speed, 0.0, 0.0]))
+    if keys[pg.K_SPACE]:
+        coordinate_system.move(np.array([0.0, speed, 0.0]))
+    if keys[pg.KMOD_CTRL]:
+        coordinate_system.move(np.array([0.0, -speed, 0.0]))
+
+    print(coordinate_system.position)

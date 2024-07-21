@@ -68,6 +68,11 @@ class CoordinateSystem:
 
         return proj_vecs[:, :3]
 
+    def move(self, direction: np.ndarray, absolute: bool = False):
+        if not absolute:
+            direction = self.rotation.apply(direction)
+        self.position += direction
+
 
 def get_perspective_matrix(angle: float, ratio: float, near: float, far: float) -> np.ndarray:
     perspective = np.zeros((4, 4))

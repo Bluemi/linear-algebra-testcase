@@ -2,6 +2,7 @@
 
 
 import sys
+import time
 
 import numpy as np
 import pygame as pg
@@ -23,6 +24,8 @@ class Main:
         self.element_buffer = ElementBuffer()
         self.render_font = pg.font.Font(pg.font.get_default_font(), 18)
         self.user_interface = UserInterface()
+        self.frame_rate = 60
+        self.clock = pg.time.Clock()
 
     def run(self):
         while self.controller.running:
@@ -32,12 +35,14 @@ class Main:
             render(self.screen, self.coordinate_system, self.element_buffer, self.render_font, self.user_interface)
             pg.display.flip()
 
+            self.clock.tick(self.frame_rate)
+
         pg.quit()
 
     def handle_events(self, events):
         for event in events:
             self.controller.handle_event(event, self.coordinate_system, self.element_buffer, self.user_interface)
-
+        self.controller.tick(self.coordinate_system, self.user_interface)
         self.element_buffer.remove_elements()
 
         self.user_interface.build(self.element_buffer)
