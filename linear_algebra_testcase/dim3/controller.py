@@ -64,6 +64,6 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
 
 def handle_coordinate_system_events(event, coordinate_system: CoordinateSystem):
     if event.type == pg.MOUSEMOTION:
-        rotation_speed = 0.01
+        rotation_speed = 0.003
         rotation = np.array(event.rel, dtype=float) * -rotation_speed
         coordinate_system.rotate(rotation)
