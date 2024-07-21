@@ -19,7 +19,9 @@ class CoordinateSystem:
         self.screen_size = np.copy(DEFAULT_SCREEN_SIZE)
 
     def rotate(self, rotation: Rotation):
-        self.rotation = self.rotation * rotation
+        q = (self.rotation * rotation).as_quat()
+        q[2] = 0  # remove z rotation
+        self.rotation = Rotation.from_quat(q)
 
     def get_zero_point(self):
         """

@@ -2,6 +2,7 @@ from itertools import chain
 
 import numpy as np
 import pygame as pg
+from scipy.spatial.transform import Rotation
 
 from .coordinate_system import CoordinateSystem
 from .elements import ElementBuffer
@@ -19,6 +20,7 @@ class Controller:
         user_interface.handle_event(event, self.mouse_position)
         if not user_interface.consuming_events(self.mouse_position):
             element_buffer.handle_event(event, coordinate_system, self.mouse_position)
+            handle_coordinate_system_events(event, coordinate_system)
 
         if event.type == pg.QUIT:
             self.running = False
@@ -56,3 +58,19 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
         coordinate_system.move(np.array([0.0, speed, 0.0]))
     if keys[pg.K_LCTRL]:
         coordinate_system.move(np.array([0.0, -speed, 0.0]))
+
+
+def handle_coordinate_system_events(event, coordinate_system):
+    screen_info = pg.display.Info()
+    screen_center = np.array([screen_info.current_w // 2, screen_info.current_h // 2], dtype=int)
+
+    pg.mouse.set_pos(*screen_center)
+
+    if event.type == pg.MOUSEMOTION:
+        rotation_speed = 0.01
+        rotation = np.array(event.rel, dtype=int) * -rotation_speed
+        rotation = Rotation.from_euler('yx', rotation)
+        coordinate_system.rotate(rotation)
+
+        # keep mouse in center of screen
+        pg.mouse.set_pos(*screen_center)
