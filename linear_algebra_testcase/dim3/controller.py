@@ -68,8 +68,8 @@ def handle_coordinate_system_events(event, coordinate_system: CoordinateSystem):
 
     if event.type == pg.MOUSEMOTION:
         rotation_speed = 0.01
-        rotation = np.array(event.rel, dtype=int) * -rotation_speed
-        rotation = Rotation.from_euler('yx', rotation)
+        rotation = np.array(event.rel, dtype=float) * -rotation_speed
+        # rotation = Rotation.from_euler('yx', rotation)
         coordinate_system.rotate(rotation)
 
         # keep mouse in center of screen

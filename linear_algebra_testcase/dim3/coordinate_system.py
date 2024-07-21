@@ -11,17 +11,19 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 class CoordinateSystem:
     def __init__(self, position: Optional[np.ndarray] = None, rotation: Optional[Rotation] = None):
         self.position = position if position is not None else np.array([0.0, 0.0, 0.0])
-        self.rotation = rotation if rotation is not None else Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
+        self.yaw_rotation = Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
+        self.pitch_rotation = Rotation.from_quat([0.0, 0.0, 0.0, 1.0])
+        self.rotation = self.yaw_rotation * self.pitch_rotation
         self.field_of_view = 60 / 180 * np.pi  # 60 degrees in radians
         self.aspect_ratio = DEFAULT_SCREEN_SIZE[0] / DEFAULT_SCREEN_SIZE[1]
         self.near = 0.1
         self.far = 100.0
         self.screen_size = np.copy(DEFAULT_SCREEN_SIZE)
 
-    def rotate(self, rotation: Rotation):
-        q = (self.rotation * rotation).as_quat()
-        # q[2] = 0  # remove z rotation
-        self.rotation = Rotation.from_quat(q)
+    def rotate(self, rotation: np.ndarray):
+        self.yaw_rotation = self.yaw_rotation * Rotation.from_quat([0.0, rotation[0], 0.0, 1.0])
+        self.pitch_rotation = self.pitch_rotation * Rotation.from_quat([rotation[1], 0.0, 0.0, 1.0])
+        self.rotation = self.yaw_rotation * self.pitch_rotation
 
     def get_zero_point(self):
         """
