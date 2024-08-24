@@ -41,3 +41,10 @@ def debug(arg):
 
 def normalize_vec(vec):
     return vec / (np.linalg.norm(vec) + 0.000000001)
+
+
+def np_cross(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """
+    Workaround to fix type annotation. Just calls np.cross()
+    """
+    return np.cross(a, b)

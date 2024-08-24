@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from typing import Optional
 
-from linear_algebra_testcase.utils import normalize_vec
+from linear_algebra_testcase.utils import normalize_vec, np_cross
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
@@ -54,7 +54,7 @@ class CoordinateSystem:
         Transform the given world coordinates to screen coordinates.
 
         :param vecs: A list of vectors with shape [N, 3] or [3,].
-        :param clip: Filter out vectors that are outside of the clip space.
+        :param clip: Filter out vectors that are outside the clip space.
         :return: A list of vectors with shape [N, 3]. The z coordinate can be ignored for rendering on screen
         """
         # prepare vecs
@@ -114,9 +114,9 @@ def get_lookat(position: np.ndarray, target: np.ndarray, world_up: np.ndarray):
     # calculate camera-direction
     z_axis = normalize_vec(position - target)
     # get positive right axis vector
-    x_axis = normalize_vec(np.cross(normalize_vec(world_up), z_axis))
+    x_axis = normalize_vec(np_cross(normalize_vec(world_up), z_axis))
     # calculate camera up vector
-    y_axis = np.cross(z_axis, x_axis)
+    y_axis = np_cross(z_axis, x_axis)
 
     # create translation and rotation matrix
     translation = np.eye(4)
