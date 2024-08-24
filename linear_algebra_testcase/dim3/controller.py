@@ -13,15 +13,14 @@ class Controller:
         self.running = True
         self.is_dragging = False
         self.mouse_position = np.array(pg.mouse.get_pos(), dtype=int)
-        pg.event.set_grab(True)
-        pg.mouse.set_visible(False)
+        self.controlling_camera = False
 
     def handle_event(self, event, coordinate_system: CoordinateSystem, element_buffer: ElementBuffer,
                      user_interface: UserInterface):
         user_interface.handle_event(event, self.mouse_position)
         if not user_interface.consuming_events(self.mouse_position):
             element_buffer.handle_event(event, coordinate_system, self.mouse_position)
-            handle_coordinate_system_events(event, coordinate_system)
+            self.handle_coordinate_system_events(event, coordinate_system)
 
         if event.type == pg.QUIT:
             self.running = False
@@ -43,6 +42,19 @@ class Controller:
         if not user_interface.consuming_events(self.mouse_position):
             handle_coordinate_system(coordinate_system)
 
+    def handle_coordinate_system_events(self, event, coordinate_system: CoordinateSystem):
+        if self.controlling_camera:
+            if event.type == pg.MOUSEMOTION:
+                rotation_speed = 0.003
+                rotation = np.array(event.rel, dtype=float) * -rotation_speed
+                coordinate_system.rotate(rotation)
+        if event.type == pg.KEYUP:
+            if event.key == pg.K_CAPSLOCK:
+                caps_active = bool(pg.key.get_mods() & pg.KMOD_CAPS)
+                self.controlling_camera = caps_active
+                pg.event.set_grab(caps_active)
+                pg.mouse.set_visible(not caps_active)
+
 
 def handle_coordinate_system(coordinate_system: CoordinateSystem):
     keys = pg.key.get_pressed()
@@ -61,8 +73,3 @@ def handle_coordinate_system(coordinate_system: CoordinateSystem):
         coordinate_system.move(np.array([0.0, -speed, 0.0]))
 
 
-def handle_coordinate_system_events(event, coordinate_system: CoordinateSystem):
-    if event.type == pg.MOUSEMOTION:
-        rotation_speed = 0.003
-        rotation = np.array(event.rel, dtype=float) * -rotation_speed
-        coordinate_system.rotate(rotation)
