@@ -2,7 +2,6 @@ from itertools import chain
 
 import numpy as np
 import pygame as pg
-from scipy.spatial.transform import Rotation
 
 from .coordinate_system import CoordinateSystem
 from .elements import ElementBuffer
