@@ -4,6 +4,7 @@
 import sys
 import pygame as pg
 
+from linear_algebra_testcase.utils import Dimension
 from .controller import Controller
 from .coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
 from .elements import ElementBuffer
@@ -36,7 +37,7 @@ class Main:
 
         self.element_buffer.remove_elements()
 
-        self.user_interface.build(self.element_buffer)
+        self.user_interface.build(self.element_buffer, Dimension.d2)
 
         if self.controller.update_needed:
             render(self.screen, self.coordinate_system, self.element_buffer, self.render_font, self.user_interface)

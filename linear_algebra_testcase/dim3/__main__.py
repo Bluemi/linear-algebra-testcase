@@ -11,6 +11,7 @@ from linear_algebra_testcase.dim3.controller import Controller
 from linear_algebra_testcase.dim3.coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
 from linear_algebra_testcase.dim3.elements import ElementBuffer
 from linear_algebra_testcase.dim3.render import render
+from linear_algebra_testcase.utils import Dimension
 from linear_algebra_testcase.utils.user_interface import UserInterface
 
 
@@ -46,7 +47,7 @@ class Main:
         self.controller.tick(self.coordinate_system, self.user_interface)
         self.element_buffer.remove_elements()
 
-        self.user_interface.build(self.element_buffer)
+        self.user_interface.build(self.element_buffer, Dimension.d3)
 
 
 def main():

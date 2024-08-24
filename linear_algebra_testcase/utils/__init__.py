@@ -1,3 +1,5 @@
+from enum import IntEnum
+
 import pygame as pg
 import sys
 import inspect
@@ -48,3 +50,8 @@ def np_cross(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     Workaround to fix type annotation. Just calls np.cross()
     """
     return np.cross(a, b)
+
+
+class Dimension(IntEnum):
+    d2 = 2
+    d3 = 3

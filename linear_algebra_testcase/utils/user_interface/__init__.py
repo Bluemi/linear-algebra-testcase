@@ -9,7 +9,8 @@ from linear_algebra_testcase.dim2.elements import (Transform2D, ElementBuffer, T
 from ..user_interface.items import (Container, Label, Button, Image, RootContainer, VectorItem, TransformItem,
                                     ElementLabel)
 from ..user_interface.window import Window
-from linear_algebra_testcase.utils import Colors
+from linear_algebra_testcase.utils import Colors, Dimension
+from ...dim3.elements import Cube
 
 
 class UserInterface:
@@ -52,7 +53,7 @@ class UserInterface:
     def consuming_events(self, position: np.ndarray):
         return self.root.colliding(position) or bool(self.text_input_window)
 
-    def build(self, element_buffer: ElementBuffer):
+    def build(self, element_buffer: ElementBuffer, dim: Dimension):
         new_root = RootContainer()
         item_container = Container(
             'item_container', Rect(0, 0, 400, pg.display.get_window_size()[1]), color=Colors.BACKGROUND, visible=False
@@ -60,9 +61,9 @@ class UserInterface:
         new_root.add_child(item_container)
 
         self.item_y_position = 0
-        self.add_objects_section(item_container, element_buffer)
-        self.add_transforms_section(item_container, element_buffer)
-        self.add_transformed_section(item_container, element_buffer)
+        self.add_objects_section(item_container, element_buffer, dim)
+        self.add_transforms_section(item_container, element_buffer, dim)
+        self.add_transformed_section(item_container, element_buffer, dim)
         self.add_menu_button(new_root, item_container)
 
         # update from old root
@@ -80,47 +81,64 @@ class UserInterface:
         menu_button.on_click = menu_button_on_click
         new_root.add_child(menu_button)
 
-    def add_objects_section(self, item_container, element_buffer: ElementBuffer):
+    def add_objects_section(self, item_container, element_buffer: ElementBuffer, dim: Dimension):
         objects_label = Label('objects_label', (10, 60), 'Objects')
         item_container.add_child(objects_label)
 
-        # add vec button
-        add_vec_button = Button(
-            'add_vec_btn', (objects_label.rect.width + 20, 58),
-            label=Image('add_vec_btn_label', (0, 0), Button.create_plus_image())
-        )
+        if dim == Dimension.d2:
+            # add vec button
+            add_vec_button = Button(
+                'add_vec_btn', (objects_label.rect.width + 20, 58),
+                label=Image('add_vec_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        def add_vec():
-            num_elements = len(element_buffer.elements) + 1
-            element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1.0, 0.0])))
-        add_vec_button.on_click = add_vec
-        item_container.add_child(add_vec_button)
+            def add_vec():
+                num_elements = len(element_buffer.elements) + 1
+                element_buffer.elements.append(Vector('v{}'.format(num_elements), np.array([1.0, 0.0])))
+            add_vec_button.on_click = add_vec
+            item_container.add_child(add_vec_button)
 
-        # add circle button
-        add_circle_button = Button(
-            'add_circle_btn', (objects_label.rect.width + 50, 58),
-            label=Image('add_circle_btn_label', (0, 0), Button.create_plus_image())
-        )
+            # add circle button
+            add_circle_button = Button(
+                'add_circle_btn', (objects_label.rect.width + 50, 58),
+                label=Image('add_circle_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        def add_circle():
-            num_elements = len(element_buffer.elements) + 1
-            obj = MultiVectorObject('u{}'.format(num_elements), MultiVectorObject.generate_unit_circle(40))
-            element_buffer.elements.append(obj)
-        add_circle_button.on_click = add_circle
-        item_container.add_child(add_circle_button)
+            def add_circle():
+                num_elements = len(element_buffer.elements) + 1
+                obj = MultiVectorObject('u{}'.format(num_elements), MultiVectorObject.generate_unit_circle(40))
+                element_buffer.elements.append(obj)
+            add_circle_button.on_click = add_circle
+            item_container.add_child(add_circle_button)
 
-        # add house button
-        add_house_button = Button(
-            'add_house_btn', (objects_label.rect.width + 80, 58),
-            label=Image('add_house_btn_label', (0, 0), Button.create_plus_image())
-        )
+            # add house button
+            add_house_button = Button(
+                'add_house_btn', (objects_label.rect.width + 80, 58),
+                label=Image('add_house_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        def add_house():
-            num_elements = len(element_buffer.elements) + 1
-            obj = MultiVectorObject('h{}'.format(num_elements), MultiVectorObject.generate_house())
-            element_buffer.elements.append(obj)
-        add_house_button.on_click = add_house
-        item_container.add_child(add_house_button)
+            def add_house():
+                num_elements = len(element_buffer.elements) + 1
+                obj = MultiVectorObject('h{}'.format(num_elements), MultiVectorObject.generate_house())
+                element_buffer.elements.append(obj)
+            add_house_button.on_click = add_house
+            item_container.add_child(add_house_button)
+        elif dim == Dimension.d3:
+            add_cube_button = Button(
+                'add_cube_btn', (objects_label.rect.width + 80, 58),
+                label=Image('add_cube_btn_label', (0, 0), Button.create_plus_image())
+            )
+
+            def add_cube():
+                num_elements = len(element_buffer.elements) + 1
+
+                obj = Cube.create_cube(
+                    f'c{num_elements}', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5,
+                    render_kind=RenderKind.POINT
+                )
+                element_buffer.elements.append(obj)
+            add_cube_button.on_click = add_cube
+            item_container.add_child(add_cube_button)
 
         # add object elements
         self.item_y_position = 90
@@ -159,36 +177,39 @@ class UserInterface:
         vector_item.on_click = set_vector_for_transformed
         self.item_y_position += vector_item.rect.height + 1
 
-    def add_transforms_section(self, item_container, element_buffer: ElementBuffer):
+    def add_transforms_section(self, item_container, element_buffer: ElementBuffer, dim: Dimension):
         self.item_y_position += 10
         transforms_label = Label('transforms_label', (10, self.item_y_position), 'Transforms')
         item_container.add_child(transforms_label)
 
-        # add 2d transform button
-        add_2d_transform_button = Button(
-            'add_2d_transform_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
-            label=Image('add_2d_transform_btn_label', (0, 0), Button.create_plus_image())
-        )
+        if dim == Dimension.d2:
+            # add 2d transform button
+            add_2d_transform_button = Button(
+                'add_2d_transform_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
+                label=Image('add_2d_transform_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        def add_2d_transform():
-            num_transforms = len(element_buffer.transforms) + 1
-            element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
-        add_2d_transform_button.on_click = add_2d_transform
-        item_container.add_child(add_2d_transform_button)
+            def add_2d_transform():
+                num_transforms = len(element_buffer.transforms) + 1
+                element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
+            add_2d_transform_button.on_click = add_2d_transform
+            item_container.add_child(add_2d_transform_button)
 
-        # add 3d transform button
-        add_3d_transform_button = Button(
-            'add_3d_transform_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
-            label=Image('add_3d_transform_btn_label', (0, 0), Button.create_plus_image())
-        )
+            # add 3d transform button
+            add_3d_transform_button = Button(
+                'add_3d_transform_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
+                label=Image('add_3d_transform_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        def add_3d_transform():
-            num_transforms = len(element_buffer.transforms) + 1
-            element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
-        add_3d_transform_button.on_click = add_3d_transform
-        item_container.add_child(add_3d_transform_button)
+            def add_3d_transform():
+                num_transforms = len(element_buffer.transforms) + 1
+                element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
+            add_3d_transform_button.on_click = add_3d_transform
+            item_container.add_child(add_3d_transform_button)
 
-        self.item_y_position += transforms_label.rect.height + 10
+            self.item_y_position += transforms_label.rect.height + 10
+        if dim == Dimension.d3:
+            self.item_y_position += 30
 
         for transform in element_buffer.transforms:
             self._create_transform(item_container, transform)
@@ -205,39 +226,42 @@ class UserInterface:
         item_container.add_child(transform_item)
         self.item_y_position += transform_item.rect.height + 1
 
-    def add_transformed_section(self, item_container, element_buffer: ElementBuffer):
+    def add_transformed_section(self, item_container, element_buffer: ElementBuffer, dim: Dimension):
         self.item_y_position += 10
         transformed_label = Label('transformed_label', (10, self.item_y_position), 'Transformed')
         item_container.add_child(transformed_label)
 
-        # add transformed button
-        add_transformed_button = Button(
-            'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
-            label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
-        )
-
-        def add_transformed():
-            num_transformed = len(element_buffer.transformed) + 1
-            element_buffer.transformed.append(
-                Transformed('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
+        if dim == Dimension.d2:
+            # add transformed button
+            add_transformed_button = Button(
+                'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
+                label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
             )
-        add_transformed_button.on_click = add_transformed
-        item_container.add_child(add_transformed_button)
 
-        # add custom transformed button
-        add_custom_transformed_button = Button(
-            'add_custom_transform_btn', (transformed_label.rect.width + 50, self.item_y_position - 2),
-            label=Image('add_custom_transform_btn_label', (0, 0), Button.create_plus_image())
-        )
+            def add_transformed():
+                num_transformed = len(element_buffer.transformed) + 1
+                element_buffer.transformed.append(
+                    Transformed('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
+                )
+            add_transformed_button.on_click = add_transformed
+            item_container.add_child(add_transformed_button)
 
-        def add_custom_transformed():
-            num_transformed = len(element_buffer.transformed) + 1
-            custom_transformed = CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE, element_buffer)
-            element_buffer.transformed.append(custom_transformed)
-        add_custom_transformed_button.on_click = add_custom_transformed
-        item_container.add_child(add_custom_transformed_button)
+            # add custom transformed button
+            add_custom_transformed_button = Button(
+                'add_custom_transform_btn', (transformed_label.rect.width + 50, self.item_y_position - 2),
+                label=Image('add_custom_transform_btn_label', (0, 0), Button.create_plus_image())
+            )
 
-        self.item_y_position += transformed_label.rect.height + 10
+            def add_custom_transformed():
+                num_transformed = len(element_buffer.transformed) + 1
+                custom_transformed = CustomTransformed('t{}'.format(num_transformed), RenderKind.LINE, element_buffer)
+                element_buffer.transformed.append(custom_transformed)
+            add_custom_transformed_button.on_click = add_custom_transformed
+            item_container.add_child(add_custom_transformed_button)
+
+            self.item_y_position += transformed_label.rect.height + 10
+        elif dim == Dimension.d3:
+            pass
 
         for transformed in element_buffer.transformed:
             if isinstance(transformed, Transformed):
