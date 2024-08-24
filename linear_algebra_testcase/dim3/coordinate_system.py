@@ -9,7 +9,7 @@ DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
 
 class CoordinateSystem:
-    def __init__(self, position: Optional[np.ndarray] = None, rotation: Optional[Rotation] = None):
+    def __init__(self, position: Optional[np.ndarray] = None):
         self.position = position if position is not None else np.array([0.0, 0.0, 0.0])
         self.screen_size = np.copy(DEFAULT_SCREEN_SIZE)
 
@@ -132,7 +132,7 @@ def get_lookat(position: np.ndarray, target: np.ndarray, world_up: np.ndarray):
 
 
 def test_coordinate_system():
-    system = CoordinateSystem(np.array([0.0, 0.0, 2.0]), Rotation.from_quat([0.0, 0.0, 0.0, 1.0]))
+    system = CoordinateSystem(np.array([0.0, 0.0, 2.0]))
 
     # vecs = np.random.random((5, 3))
     vecs = np.eye(3)
