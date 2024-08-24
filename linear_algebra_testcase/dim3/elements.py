@@ -71,6 +71,50 @@ class Cube(Element):
             #     self.coordinates = snap(pos)
 
 
+class Vector3D(Element):
+    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
+        super().__init__(name, render_kind)
+        self.coordinates = coordinates.reshape((3, 1))
+        self.dragged = False
+
+    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
+        if not self.visible:
+            return False
+        pos = coordinate_system.transform(self.get_array()).flatten()
+        if not len(pos):
+            return False
+        diff = np.sum((mouse_position - pos[:2])**2)
+        return diff < 100
+
+    def __repr__(self):
+        return '[{:.2f} {:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1], self.coordinates[2])
+
+    def get_array(self):
+        return self.coordinates.reshape((1, 3))
+
+    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
+        transformed_vec = coordinate_system.transform(self.get_array()).flatten()
+        if not len(transformed_vec):
+            return
+        width = 3 if self.hovered else 1
+        if self.render_kind == RenderKind.POINT:
+            pg.draw.circle(screen, GREEN, transformed_vec[:2], width)
+        elif self.render_kind == RenderKind.LINE:
+            pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec[:2], width=width)
+
+    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
+        super().handle_event(event, coordinate_system, mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.is_hovered(mouse_position, coordinate_system):
+                self.dragged = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged = False
+        # elif event.type == pg.MOUSEMOTION:
+        #     if self.dragged:
+        #         pos = coordinate_system.transform_inverse(np.array(event.pos))
+        #         self.coordinates = snap(pos)
+
+
 class MultiVectorObject(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.POINT):
         super().__init__(name, render_kind)

@@ -10,7 +10,7 @@ from ..user_interface.items import (Container, Label, Button, Image, RootContain
                                     ElementLabel)
 from ..user_interface.window import Window
 from linear_algebra_testcase.utils import Colors, Dimension
-from ...dim3.elements import Cube
+from ...dim3.elements import Cube, Vector3D
 
 
 class UserInterface:
@@ -124,8 +124,23 @@ class UserInterface:
             add_house_button.on_click = add_house
             item_container.add_child(add_house_button)
         elif dim == Dimension.d3:
+            # add vector
+            add_vec_button = Button(
+                'add_vec_btn', (objects_label.rect.width + 20, 58),
+                label=Image('add_vec_btn_label', (0, 0), Button.create_plus_image())
+            )
+
+            def add_vec():
+                num_elements = len(element_buffer.elements) + 1
+
+                obj = Vector3D(f'c{num_elements}', np.ones(3, dtype=float), render_kind=RenderKind.POINT)
+                element_buffer.elements.append(obj)
+            add_vec_button.on_click = add_vec
+            item_container.add_child(add_vec_button)
+
+            # add cube
             add_cube_button = Button(
-                'add_cube_btn', (objects_label.rect.width + 80, 58),
+                'add_cube_btn', (objects_label.rect.width + 50, 58),
                 label=Image('add_cube_btn_label', (0, 0), Button.create_plus_image())
             )
 
