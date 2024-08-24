@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import Optional, List, Tuple, Union, Callable
 
 import numpy as np
@@ -6,6 +7,7 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Transform3D, Element
+from linear_algebra_testcase.dim3.elements import Vector3D
 from linear_algebra_testcase.utils import gray, format_float, noop, Colors
 
 
@@ -382,7 +384,7 @@ class Button(Item):
 
 
 class VectorItem(ItemContainer):
-    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_vec: Vector,
+    def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]], associated_vec: Vector | Vector3D,
                  fontsize: int = 18, text_color: pg.Color = None, font_name: str = ''):
         """
         Creates a new VectorItem that can be used to render a vector ui element.
@@ -394,7 +396,8 @@ class VectorItem(ItemContainer):
         :param text_color: The text color to use
         :param font_name: The font to use
         """
-        rect = Rect(position[0], position[1], 120, 55)
+        height = 55 if isinstance(associated_vec, Vector) else 75
+        rect = Rect(position[0], position[1], 120, height)
         super().__init__(name, rect)
         self.associated_vec: Vector = associated_vec
         self.fontsize = fontsize
@@ -404,17 +407,18 @@ class VectorItem(ItemContainer):
 
         name_label = Label(self.name + '_name_label', (10, 20), self.associated_vec.name, text_color=text_color)
         self.add_child(name_label)
-        self.number_label_1 = Label(
-            self.name + '_label_1', (50, 10), format_float(self.associated_vec.get_array()[0, 0]), text_color=text_color
-        )
-        self.add_child(self.number_label_1)
-        self.number_label_2 = Label(
-            self.name + '_label_2', (50, 30), format_float(self.associated_vec.get_array()[1, 0]), text_color=text_color
-        )
-        self.add_child(self.number_label_2)
 
-        self.label_1_dragged = False
-        self.label_2_dragged = False
+        self.number_labels = []
+
+        for index, value in enumerate(self.associated_vec.get_array().flatten()):
+            number_label = Label(
+                '{}_label_{}'.format(self.name, index), (50, 10 + 20 * index), format_float(value),
+                text_color=text_color
+            )
+            self.number_labels.append(number_label)
+            self.add_child(number_label)
+
+        self.labels_dragged = [False for _ in self.number_labels]
 
     def render(self, surface: Surface):
         self.render_child_items(surface)
@@ -422,10 +426,9 @@ class VectorItem(ItemContainer):
     def handle_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_event(event, rel_mouse_position)
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            if self.number_label_1.rect.collidepoint(rel_mouse_position):
-                self.label_1_dragged = True
-            if self.number_label_2.rect.collidepoint(rel_mouse_position):
-                self.label_2_dragged = True
+            for index, number_label in enumerate(self.number_labels):
+                if number_label.rect.collidepoint(rel_mouse_position):
+                    self.labels_dragged[index] = True
 
         if event.type == pg.KEYDOWN:
             if event.key == 8 or event.key == 127:  # esc or backspace
@@ -438,13 +441,11 @@ class VectorItem(ItemContainer):
     def handle_every_event(self, event: pg.event.Event, rel_mouse_position: np.ndarray):
         super().handle_every_event(event, rel_mouse_position)
         if event.type == pg.MOUSEBUTTONUP and event.button == 1:
-            self.label_1_dragged = False
-            self.label_2_dragged = False
+            self.labels_dragged = [False for _ in self.number_labels]
         elif event.type == pg.MOUSEMOTION:
-            if self.label_1_dragged:
-                self.associated_vec.coordinates[0] -= event.rel[1] * 0.01
-            if self.label_2_dragged:
-                self.associated_vec.coordinates[1] -= event.rel[1] * 0.01
+            for index, dragged in enumerate(self.labels_dragged):
+                if dragged:
+                    self.associated_vec.coordinates[index] -= event.rel[1] * 0.01
 
     def update_from(self, other):
         """
@@ -453,8 +454,7 @@ class VectorItem(ItemContainer):
         :type other: VectorItem
         """
         super().update_from(other)
-        self.label_1_dragged = other.label_1_dragged
-        self.label_2_dragged = other.label_2_dragged
+        self.labels_dragged = copy(other.labels_dragged)
 
 
 class TransformItem(ItemContainer):

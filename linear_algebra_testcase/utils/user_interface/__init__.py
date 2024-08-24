@@ -158,7 +158,7 @@ class UserInterface:
         # add object elements
         self.item_y_position = 90
         for element in element_buffer.elements:
-            if isinstance(element, Vector):
+            if isinstance(element, Vector) or isinstance(element, Vector3D):
                 self._create_vector(element, item_container)
             elif isinstance(element, MultiVectorObject):
                 self._create_multiobject(element, item_container)
@@ -179,7 +179,7 @@ class UserInterface:
         item_container.add_child(object_item)
         self.item_y_position += object_item.rect.height + 1
 
-    def _create_vector(self, element, item_container):
+    def _create_vector(self, element: Vector | Vector3D, item_container):
         text_color = Colors.ACTIVE if element.visible else Colors.INACTIVE
         vector_item = VectorItem(element.name + '_ui', (10, self.item_y_position), element, text_color=text_color)
         item_container.add_child(vector_item)
