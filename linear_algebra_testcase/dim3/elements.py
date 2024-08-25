@@ -100,7 +100,9 @@ class Vector3D(Element):
         if self.render_kind == RenderKind.POINT:
             pg.draw.circle(screen, GREEN, transformed_vec[:2], width)
         elif self.render_kind == RenderKind.LINE:
-            pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), transformed_vec[:2], width=width)
+            pg.draw.line(
+                screen, GREEN, coordinate_system.get_zero_point().flatten()[:2], transformed_vec[:2], width=width
+            )
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
