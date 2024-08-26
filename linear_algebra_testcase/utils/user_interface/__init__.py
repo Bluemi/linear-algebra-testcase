@@ -133,7 +133,7 @@ class UserInterface:
             def add_vec():
                 num_elements = len(element_buffer.elements) + 1
 
-                obj = Vector3D(f'c{num_elements}', np.ones(3, dtype=float), render_kind=RenderKind.POINT)
+                obj = Vector3D(f'v{num_elements}', np.ones(3, dtype=float), render_kind=RenderKind.POINT)
                 element_buffer.elements.append(obj)
             add_vec_button.on_click = add_vec
             item_container.add_child(add_vec_button)
