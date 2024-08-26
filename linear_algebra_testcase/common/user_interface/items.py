@@ -7,7 +7,7 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Translate2D, Element
-from linear_algebra_testcase.dim3.elements import Vector3D
+from linear_algebra_testcase.dim3.elements import Vector3D, Transform3D, Translate3D
 from linear_algebra_testcase.common.utils import gray, format_float, noop, Colors
 
 
@@ -476,7 +476,7 @@ class TransformItem(ItemContainer):
         height = 55 + 20 * (mat_size - 2)
         rect = Rect(position[0], position[1], width, height)
         super().__init__(name, rect)
-        self.associated_transform: Union[Transform2D, Translate2D] = associated_transform
+        self.associated_transform: Union[Transform2D, Translate2D, Transform3D, Translate3D] = associated_transform
         self.fontsize = fontsize
         if text_color is None:
             text_color = Colors.ACTIVE if associated_transform.visible else Colors.INACTIVE

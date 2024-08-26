@@ -208,7 +208,7 @@ class Translate3D(Element):
         zero_point = coordinate_system.get_zero_point().flatten()[:2]
         for i, transformed_vec in enumerate(render_locations):
             width = 3 if self.hovered_index == i else 1
-            color = [CYAN, YELLOW, MAGENTA, BLUE][i]
+            color = AXIS_COLORS[i]
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
             elif self.render_kind == RenderKind.LINE:
@@ -245,34 +245,46 @@ class Translate3D(Element):
 
 
 class Transformed(Element):
-    def __init__(self, name: str, element: Union[None, MultiVectorObject3D], transform: Optional[Transform3D],
-                 render_kind: RenderKind):
+    def __init__(
+            self, name: str, element: Union[None, MultiVectorObject3D], transform: None | Transform3D | Translate3D,
+            render_kind: RenderKind
+    ):
         super().__init__(name, render_kind)
         self.element = element
         self.transform = transform
 
-    # noinspection PyMethodMayBeStatic
     def get_position(self):
-        # TODO
-        # if self.element is not None and self.transform is not None:
-        # return transform_p(self.transform.get_array(), self.element.get_array())
-        return None
+        if self.element is not None and self.transform is not None:
+            transform = self.transform.get_array()
+            element = self.element.get_array()
+            # print('-------------------')
+            # print('element (before pad):\n', element)
+            # if affine transform
+            if transform.shape[0] == 4:
+                element = np.pad(element, ((0, 0), (0, 1)), 'constant', constant_values=1.0)
+            # print('element (with pad):\n', element)
+            # print('transform:\n', transform)
+            # result = element @ transform
+            result = (transform @ element.T).T
+            # print('result:', result)
+            if transform.shape[0] == 4:
+                result = result[:, :3]
+            return result
 
     def get_array(self):
         return self.get_position()
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        pass
-        # new_vec = self.get_position()
-        # zero_point = coordinate_system.get_zero_point()
-        # if new_vec is None:
-        #     return
-        # transformed_vec = coordinate_system.transform(new_vec).T
-        # for point in transformed_vec:
-        #     if self.render_kind == RenderKind.POINT:
-        #         pg.draw.circle(screen, RED, point, 3)
-        #     elif self.render_kind == RenderKind.LINE:
-        #         pg.draw.line(screen, RED, zero_point, point, width=1)
+        points = self.get_position()
+        if points is None:
+            return
+        zero_point = coordinate_system.get_zero_point().flatten()[:2]
+        transformed_vec = coordinate_system.transform(points)
+        for point in transformed_vec[:, :2]:
+            if self.render_kind == RenderKind.POINT:
+                pg.draw.circle(screen, RED, point, 3)
+            elif self.render_kind == RenderKind.LINE:
+                pg.draw.line(screen, RED, zero_point, point, width=1)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass

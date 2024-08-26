@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from typing import Optional
 
-from linear_algebra_testcase.common.utils import normalize_vec, np_cross
+from linear_algebra_testcase.common.utils import normalize_vec, np_cross, prepare_vecs
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 
@@ -58,10 +58,7 @@ class CoordinateSystem:
         :return: A list of vectors with shape [N, 3]. The z coordinate can be ignored for rendering on screen
         """
         # prepare vecs
-        if vecs.shape == (3,):
-            vecs = vecs.reshape(1, 3)
-        # pad to 4D vec
-        vecs = np.pad(vecs, ((0, 0), (0, 1)), 'constant', constant_values=1.0)
+        vecs = prepare_vecs(vecs, 3)
 
         # projection
         proj_vecs = (self.transformation_matrix @ vecs.T).T

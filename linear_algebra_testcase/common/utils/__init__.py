@@ -52,6 +52,16 @@ def np_cross(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return np.cross(a, b)
 
 
+def prepare_vecs(vecs, dim: int) -> np.ndarray:
+    """
+    Makes sure vecs are of shape [N, dim+1].
+    """
+    if vecs.shape == (dim,):
+        vecs = vecs.reshape(1, dim)
+    # pad to 4D vec
+    return np.pad(vecs, ((0, 0), (0, 1)), 'constant', constant_values=1.0)
+
+
 class Dimension(IntEnum):
     d2 = 2
     d3 = 3

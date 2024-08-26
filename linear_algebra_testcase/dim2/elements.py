@@ -341,5 +341,3 @@ class CustomTransformed(Element):
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
-
-
