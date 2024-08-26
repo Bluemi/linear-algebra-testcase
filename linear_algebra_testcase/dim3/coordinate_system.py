@@ -47,7 +47,7 @@ class CoordinateSystem:
         """
         Get the zero point of the coordinate system in screen coordinates.
         """
-        return self.transform(np.array([0.0, 0.0, 0.0]))
+        return self.transform(np.array([0.0, 0.0, 0.0]), clip=False)
 
     def transform(self, vecs: np.ndarray, clip: bool = True) -> np.ndarray:
         """

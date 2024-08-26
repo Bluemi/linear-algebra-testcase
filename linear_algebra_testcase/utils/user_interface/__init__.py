@@ -5,12 +5,12 @@ import pygame as pg
 from pygame import Surface, Rect
 
 from linear_algebra_testcase.dim2.elements import (Transform2D, ElementBuffer, Transformed, Vector, MultiVectorObject,
-                                                   CustomTransformed, Transform3D, RenderKind)
+                                                   CustomTransformed, Translate2D, RenderKind)
 from ..user_interface.items import (Container, Label, Button, Image, RootContainer, VectorItem, TransformItem,
                                     ElementLabel)
 from ..user_interface.window import Window
 from linear_algebra_testcase.utils import Colors, Dimension
-from ...dim3.elements import MultiVectorObject3D, Vector3D
+from ...dim3.elements import MultiVectorObject3D, Vector3D, Transform3D, Translate3D
 
 
 class UserInterface:
@@ -197,34 +197,50 @@ class UserInterface:
         transforms_label = Label('transforms_label', (10, self.item_y_position), 'Transforms')
         item_container.add_child(transforms_label)
 
+        def add_2d_linear_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
+
+        def add_2d_affine_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Translate2D('T{}'.format(num_transforms)))
+
+        def add_3d_linear_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
+
+        def add_3d_affine_transform():
+            num_transforms = len(element_buffer.transforms) + 1
+            element_buffer.transforms.append(Translate3D('T{}'.format(num_transforms)))
+
         if dim == Dimension.d2:
-            # add 2d transform button
-            add_2d_transform_button = Button(
-                'add_2d_transform_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
-                label=Image('add_2d_transform_btn_label', (0, 0), Button.create_plus_image())
-            )
+            add_linear_transform = add_2d_linear_transform
+            add_affine_transform = add_2d_affine_transform
+        elif dim == Dimension.d3:
+            add_linear_transform = add_3d_linear_transform
+            add_affine_transform = add_3d_affine_transform
+        else:
+            raise ValueError('Unknown dim: {}'.format(dim))
 
-            def add_2d_transform():
-                num_transforms = len(element_buffer.transforms) + 1
-                element_buffer.transforms.append(Transform2D('T{}'.format(num_transforms)))
-            add_2d_transform_button.on_click = add_2d_transform
-            item_container.add_child(add_2d_transform_button)
+        # add linear button
+        add_linear_button = Button(
+            'add_linear_btn', (transforms_label.rect.width + 20, self.item_y_position - 2),
+            label=Image('add_linear_btn_label', (0, 0), Button.create_plus_image())
+        )
 
-            # add 3d transform button
-            add_3d_transform_button = Button(
-                'add_3d_transform_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
-                label=Image('add_3d_transform_btn_label', (0, 0), Button.create_plus_image())
-            )
+        add_linear_button.on_click = add_linear_transform
+        item_container.add_child(add_linear_button)
 
-            def add_3d_transform():
-                num_transforms = len(element_buffer.transforms) + 1
-                element_buffer.transforms.append(Transform3D('T{}'.format(num_transforms)))
-            add_3d_transform_button.on_click = add_3d_transform
-            item_container.add_child(add_3d_transform_button)
+        # add affine transform button
+        add_affine_button = Button(
+            'add_affine_btn', (transforms_label.rect.width + 50, self.item_y_position - 2),
+            label=Image('add_affine_btn_label', (0, 0), Button.create_plus_image())
+        )
 
-            self.item_y_position += transforms_label.rect.height + 10
-        if dim == Dimension.d3:
-            self.item_y_position += 30
+        add_affine_button.on_click = add_affine_transform
+        item_container.add_child(add_affine_button)
+
+        self.item_y_position += transforms_label.rect.height + 10
 
         for transform in element_buffer.transforms:
             self._create_transform(item_container, transform)

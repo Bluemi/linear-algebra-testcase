@@ -6,7 +6,7 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Transform3D, Element
+from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Translate2D, Element
 from linear_algebra_testcase.dim3.elements import Vector3D
 from linear_algebra_testcase.utils import gray, format_float, noop, Colors
 
@@ -459,7 +459,7 @@ class VectorItem(ItemContainer):
 
 class TransformItem(ItemContainer):
     def __init__(self, name: str, position: Union[np.ndarray, Tuple[int, int]],
-                 associated_transform: Union[Transform2D, Transform3D], fontsize: int = 18,
+                 associated_transform: Union[Transform2D, Translate2D], fontsize: int = 18,
                  text_color: pg.Color = None, font_name: str = ''):
         """
         Creates a new VectorItem that can be used to render a vector ui element.
@@ -475,7 +475,7 @@ class TransformItem(ItemContainer):
         height = 55 if isinstance(associated_transform, Transform2D) else 75
         rect = Rect(position[0], position[1], width, height)
         super().__init__(name, rect)
-        self.associated_transform: Union[Transform2D, Transform3D] = associated_transform
+        self.associated_transform: Union[Transform2D, Translate2D] = associated_transform
         self.fontsize = fontsize
         if text_color is None:
             text_color = Colors.ACTIVE if associated_transform.visible else Colors.INACTIVE

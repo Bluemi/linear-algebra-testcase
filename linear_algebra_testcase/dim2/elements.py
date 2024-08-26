@@ -246,7 +246,7 @@ class Transform2D(Element):
                 self.matrix[:, self.dragged_index] = snap(pos)
 
 
-class Transform3D(Element):
+class Translate2D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
         self.matrix = np.eye(3)

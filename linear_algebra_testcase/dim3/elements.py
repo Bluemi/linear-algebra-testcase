@@ -9,6 +9,9 @@ from linear_algebra_testcase.utils import normalize_vec
 from linear_algebra_testcase.dim2.elements import (Element, RenderKind, RED, GREEN, CYAN, YELLOW, MAGENTA, snap)
 
 
+AXIS_COLORS = [CYAN, YELLOW, MAGENTA]
+
+
 class Vector3D(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
@@ -138,10 +141,10 @@ class MultiVectorObject3D(Element):
             #     self.coordinates = snap(pos)
 
 
-class Transform2D(Element):
+class Transform3D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
-        self.matrix = np.eye(2)
+        self.matrix = np.eye(3)
         self.dragged_index = None
         self.hovered_index = None
 
@@ -149,14 +152,15 @@ class Transform2D(Element):
         return snap(self.matrix)
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_vecs = coordinate_system.transform(self.get_array()).T
+        transformed_vecs = coordinate_system.transform(self.get_array(), clip=False)[:, :2]
+        zero_point = coordinate_system.get_zero_point().flatten()[:2]
         for i, transformed_vec in enumerate(transformed_vecs):
             width = 3 if self.hovered_index == i else 1
-            color = CYAN if i == 0 else YELLOW
+            color = AXIS_COLORS[i]
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
             elif self.render_kind == RenderKind.LINE:
-                pg.draw.line(screen, color, coordinate_system.get_zero_point(), transformed_vec, width=width)
+                pg.draw.line(screen, color, zero_point, transformed_vec, width=width)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         return self.hovered_index is not None
@@ -164,7 +168,7 @@ class Transform2D(Element):
     def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem) -> Optional[int]:
         if not self.visible:
             return None
-        pos = coordinate_system.transform(self.get_array()).T
+        pos = coordinate_system.transform(self.get_array(), clip=False)[:, :2]
         diff = np.sum((mouse_position - pos)**2, axis=1)
         indices: np.ndarray = np.where(diff < 100)[0]
         if len(indices):
@@ -184,10 +188,10 @@ class Transform2D(Element):
             #     self.matrix[:, self.dragged_index] = snap(pos)
 
 
-class Transform3D(Element):
+class Translate3D(Element):
     def __init__(self, name: str, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
-        self.matrix = np.eye(3)
+        self.matrix = np.eye(4)
         self.dragged_index = None
         self.hovered_index = None
 
@@ -195,31 +199,32 @@ class Transform3D(Element):
         return snap(self.matrix)
 
     def get_render_locations(self, coordinate_system: CoordinateSystem):
-        vecs = self.get_array()[:2]
-        offset = vecs[:, 2].reshape(2, 1)
-        first_vecs = vecs[:, :2] + offset
-        first_vecs_transformed = coordinate_system.transform(first_vecs)
-        offset_transformed = coordinate_system.transform(offset)
-        return np.concatenate([first_vecs_transformed, offset_transformed.reshape(2, 1)], axis=1)
+        vecs = self.get_array()[:3]
+        offset = vecs[:, 3].reshape(1, 3)
+        first_vecs = vecs[:, :3] + offset
+        first_vecs_transformed = coordinate_system.transform(first_vecs, clip=False)[:, :2]
+        offset_transformed = coordinate_system.transform(offset, clip=False)[:, :2]
+        return np.concatenate([first_vecs_transformed, offset_transformed.reshape(1, 2)], axis=0)
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        render_locations = self.get_render_locations(coordinate_system).T
-        offset_location = render_locations[2]
+        render_locations = self.get_render_locations(coordinate_system)
+        offset_location = render_locations[3]
+        zero_point = coordinate_system.get_zero_point().flatten()[:2]
         for i, transformed_vec in enumerate(render_locations):
             width = 3 if self.hovered_index == i else 1
-            color = [CYAN, YELLOW, MAGENTA][i]
+            color = [CYAN, YELLOW, MAGENTA, MAGENTA][i]
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
             elif self.render_kind == RenderKind.LINE:
-                if i < 2:
+                if i < 3:
                     pg.draw.line(screen, color, offset_location, transformed_vec, width=width)
                 else:
-                    pg.draw.line(screen, color, coordinate_system.get_zero_point(), offset_location, width=width)
+                    pg.draw.line(screen, color, zero_point, offset_location, width=width)
 
     def get_hovered_index(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem) -> Optional[int]:
         if not self.visible:
             return None
-        pos = self.get_render_locations(coordinate_system).T
+        pos = self.get_render_locations(coordinate_system)[:, :2]
         diff = np.sum((mouse_position - pos)**2, axis=1)
         indices: np.ndarray = np.where(diff < 100)[0]
         if len(indices):
@@ -244,7 +249,7 @@ class Transform3D(Element):
 
 
 class Transformed(Element):
-    def __init__(self, name: str, element: Union[None, MultiVectorObject3D], transform: Optional[Transform2D],
+    def __init__(self, name: str, element: Union[None, MultiVectorObject3D], transform: Optional[Transform3D],
                  render_kind: RenderKind):
         super().__init__(name, render_kind)
         self.element = element
