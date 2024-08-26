@@ -4,12 +4,12 @@
 import sys
 import pygame as pg
 
-from linear_algebra_testcase.utils import Dimension
+from linear_algebra_testcase.common.utils import Dimension
 from .controller import Controller
 from .coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
 from .elements import ElementBuffer
 from .render import render
-from linear_algebra_testcase.utils.user_interface import UserInterface
+from linear_algebra_testcase.common.user_interface import UserInterface
 
 
 class Main:

@@ -8,7 +8,7 @@ from pygame import Surface, Rect
 
 from linear_algebra_testcase.dim2.elements import Vector, Transform2D, Translate2D, Element
 from linear_algebra_testcase.dim3.elements import Vector3D
-from linear_algebra_testcase.utils import gray, format_float, noop, Colors
+from linear_algebra_testcase.common.utils import gray, format_float, noop, Colors
 
 
 class Item(ABC):

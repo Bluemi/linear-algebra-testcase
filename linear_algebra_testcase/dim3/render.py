@@ -1,13 +1,11 @@
-import sys
-
 import numpy as np
 import pygame as pg
-from pygame import Surface, Color
+from pygame import Surface
 
-from .coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from .elements import ElementBuffer
-from linear_algebra_testcase.utils.user_interface import UserInterface
-from ..utils import gray
+from .coordinate_system import CoordinateSystem
+from linear_algebra_testcase.common.elements_core import ElementBuffer
+from linear_algebra_testcase.common.user_interface import UserInterface
+from linear_algebra_testcase.common.utils import gray
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2.5, 5, 10]

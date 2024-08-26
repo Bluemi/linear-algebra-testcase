@@ -2,17 +2,16 @@
 
 
 import sys
-import time
 
 import numpy as np
 import pygame as pg
 
 from linear_algebra_testcase.dim3.controller import Controller
 from linear_algebra_testcase.dim3.coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
-from linear_algebra_testcase.dim3.elements import ElementBuffer
+from linear_algebra_testcase.common.elements_core import ElementBuffer
 from linear_algebra_testcase.dim3.render import render
-from linear_algebra_testcase.utils import Dimension
-from linear_algebra_testcase.utils.user_interface import UserInterface
+from linear_algebra_testcase.common.utils import Dimension
+from linear_algebra_testcase.common.user_interface import UserInterface
 
 
 class Main:

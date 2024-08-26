@@ -1,15 +1,11 @@
-from itertools import chain
-from typing import Iterator, Optional, Union, Iterable, List, Self
+from typing import Optional, Union, Iterable, Self
 import pygame as pg
 
 import numpy as np
 
 from .coordinate_system import CoordinateSystem
-from linear_algebra_testcase.utils import normalize_vec
-from linear_algebra_testcase.dim2.elements import (Element, RenderKind, RED, GREEN, BLUE, CYAN, YELLOW, MAGENTA, snap)
-
-
-AXIS_COLORS = [CYAN, YELLOW, MAGENTA, BLUE]
+from linear_algebra_testcase.common.utils import normalize_vec
+from linear_algebra_testcase.common.elements_core import Element, RenderKind, RED, GREEN, snap, AXIS_COLORS
 
 
 class Vector3D(Element):
@@ -362,36 +358,3 @@ class CustomTransformed(Element):
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         pass
-
-
-class ElementBuffer:
-    def __init__(self):
-        self.elements: List[Element] = []
-        self.transforms: List[Element] = []
-        self.transformed: List[Element] = []
-
-        # self.create_example_elements()
-
-    def __iter__(self) -> Iterator[Element]:
-        return iter(self.elements)
-
-    def create_example_elements(self):
-        self.elements.append(
-            MultiVectorObject3D.create_cube(
-                'c1', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5, render_kind=RenderKind.POINT
-            )
-        )
-
-    def remove_elements(self):
-        self.elements = [e for e in self.elements if not e.has_to_be_removed]
-        self.transforms = [t for t in self.transforms if not t.has_to_be_removed]
-        self.transformed = [t for t in self.transformed if not t.has_to_be_removed]
-
-    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        for element in chain(self.elements, self.transforms, self.transformed):
-            if element.visible:
-                element.render(screen, coordinate_system)
-
-    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
-        for e in chain(self.elements, self.transforms, self.transformed):
-            e.handle_event(event, coordinate_system, mouse_position)

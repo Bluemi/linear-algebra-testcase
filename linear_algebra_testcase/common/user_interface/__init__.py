@@ -4,13 +4,14 @@ import numpy as np
 import pygame as pg
 from pygame import Surface, Rect
 
-from linear_algebra_testcase.dim2.elements import (Transform2D, ElementBuffer, Transformed, Vector, MultiVectorObject,
+from linear_algebra_testcase.dim2.elements import (Transform2D, Transformed2D, Vector, MultiVectorObject,
                                                    CustomTransformed, Translate2D, RenderKind)
 from ..user_interface.items import (Container, Label, Button, Image, RootContainer, VectorItem, TransformItem,
                                     ElementLabel)
 from ..user_interface.window import Window
-from linear_algebra_testcase.utils import Colors, Dimension
-from ...dim3.elements import MultiVectorObject3D, Vector3D, Transform3D, Translate3D
+from linear_algebra_testcase.common.utils import Colors, Dimension
+from linear_algebra_testcase.common.elements_core import ElementBuffer
+from linear_algebra_testcase.dim3.elements import MultiVectorObject3D, Vector3D, Transform3D, Translate3D
 
 
 class UserInterface:
@@ -22,7 +23,7 @@ class UserInterface:
 
         self.item_y_position = 0
 
-        self.choosing_for_transformed: Optional[Transformed] = None
+        self.choosing_for_transformed: Optional[Transformed2D] = None
         self.text_input_window: Optional[Window] = None
 
     def render(self, screen: Surface):
@@ -262,21 +263,22 @@ class UserInterface:
         transformed_label = Label('transformed_label', (10, self.item_y_position), 'Transformed')
         item_container.add_child(transformed_label)
 
-        if dim == Dimension.d2:
-            # add transformed button
-            add_transformed_button = Button(
-                'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
-                label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
+        # add transformed button
+        add_transformed_button = Button(
+            'add_transformed_btn', (transformed_label.rect.width + 20, self.item_y_position - 2),
+            label=Image('add_transformed_btn_label', (0, 0), Button.create_plus_image())
+        )
+
+        def add_transformed():
+            num_transformed = len(element_buffer.transformed) + 1
+            element_buffer.transformed.append(
+                Transformed2D('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
             )
 
-            def add_transformed():
-                num_transformed = len(element_buffer.transformed) + 1
-                element_buffer.transformed.append(
-                    Transformed('t{}'.format(num_transformed), None, None, render_kind=RenderKind.LINE)
-                )
-            add_transformed_button.on_click = add_transformed
-            item_container.add_child(add_transformed_button)
+        add_transformed_button.on_click = add_transformed
+        item_container.add_child(add_transformed_button)
 
+        if dim == Dimension.d2:
             # add custom transformed button
             add_custom_transformed_button = Button(
                 'add_custom_transform_btn', (transformed_label.rect.width + 50, self.item_y_position - 2),
@@ -292,10 +294,10 @@ class UserInterface:
 
             self.item_y_position += transformed_label.rect.height + 10
         elif dim == Dimension.d3:
-            pass
+            self.item_y_position += transformed_label.rect.height + 10
 
         for transformed in element_buffer.transformed:
-            if isinstance(transformed, Transformed):
+            if isinstance(transformed, Transformed2D):
                 self._create_transformed(item_container, transformed)
             elif isinstance(transformed, CustomTransformed):
                 self._create_custom_transformed(item_container, transformed)

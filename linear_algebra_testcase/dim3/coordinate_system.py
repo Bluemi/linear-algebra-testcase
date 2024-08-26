@@ -3,7 +3,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from typing import Optional
 
-from linear_algebra_testcase.utils import normalize_vec, np_cross
+from linear_algebra_testcase.common.utils import normalize_vec, np_cross
 
 DEFAULT_SCREEN_SIZE = np.array([1280, 720])
 

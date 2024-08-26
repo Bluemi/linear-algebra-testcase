@@ -4,7 +4,7 @@ from pygame import Surface, Color
 
 from .coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
 from .elements import ElementBuffer
-from linear_algebra_testcase.utils.user_interface import UserInterface
+from linear_algebra_testcase.common.user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12
 TARGET_DIVIDENDS = [1, 2.5, 5, 10]
