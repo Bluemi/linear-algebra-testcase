@@ -7,7 +7,7 @@ import pygame as pg
 from linear_algebra_testcase.common.utils import Dimension
 from .controller import Controller
 from .coordinate_system import DEFAULT_SCREEN_SIZE, CoordinateSystem
-from .elements import ElementBuffer
+from linear_algebra_testcase.common.elements_core import ElementBuffer
 from .render import render
 from linear_algebra_testcase.common.user_interface import UserInterface
 

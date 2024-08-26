@@ -3,7 +3,7 @@ import pygame as pg
 from pygame import Surface, Color
 
 from .coordinate_system import CoordinateSystem, DEFAULT_SCREEN_SIZE
-from .elements import ElementBuffer
+from linear_algebra_testcase.common.elements_core import ElementBuffer
 from linear_algebra_testcase.common.user_interface import UserInterface
 
 TARGET_NUM_POINTS = 12

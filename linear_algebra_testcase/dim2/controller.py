@@ -4,7 +4,7 @@ import numpy as np
 import pygame as pg
 
 from .coordinate_system import CoordinateSystem
-from .elements import ElementBuffer
+from linear_algebra_testcase.common.elements_core import ElementBuffer
 from linear_algebra_testcase.common.user_interface import UserInterface
 
 
