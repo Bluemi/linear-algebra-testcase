@@ -471,8 +471,9 @@ class TransformItem(ItemContainer):
         :param text_color: The text color to use
         :param font_name: The font to use
         """
-        width = 160 if isinstance(associated_transform, Transform2D) else 205
-        height = 55 if isinstance(associated_transform, Transform2D) else 75
+        mat_size = associated_transform.matrix.shape[0]
+        width = 160 + 45 * (mat_size - 2)
+        height = 55 + 20 * (mat_size - 2)
         rect = Rect(position[0], position[1], width, height)
         super().__init__(name, rect)
         self.associated_transform: Union[Transform2D, Translate2D] = associated_transform

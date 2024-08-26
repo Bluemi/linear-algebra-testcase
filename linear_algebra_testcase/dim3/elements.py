@@ -6,10 +6,10 @@ import numpy as np
 
 from .coordinate_system import CoordinateSystem
 from linear_algebra_testcase.utils import normalize_vec
-from linear_algebra_testcase.dim2.elements import (Element, RenderKind, RED, GREEN, CYAN, YELLOW, MAGENTA, snap)
+from linear_algebra_testcase.dim2.elements import (Element, RenderKind, RED, GREEN, BLUE, CYAN, YELLOW, MAGENTA, snap)
 
 
-AXIS_COLORS = [CYAN, YELLOW, MAGENTA]
+AXIS_COLORS = [CYAN, YELLOW, MAGENTA, BLUE]
 
 
 class Vector3D(Element):
@@ -212,7 +212,7 @@ class Translate3D(Element):
         zero_point = coordinate_system.get_zero_point().flatten()[:2]
         for i, transformed_vec in enumerate(render_locations):
             width = 3 if self.hovered_index == i else 1
-            color = [CYAN, YELLOW, MAGENTA, MAGENTA][i]
+            color = [CYAN, YELLOW, MAGENTA, BLUE][i]
             if self.render_kind == RenderKind.POINT:
                 pg.draw.circle(screen, color, transformed_vec, width)
             elif self.render_kind == RenderKind.LINE:

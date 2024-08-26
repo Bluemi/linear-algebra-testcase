@@ -12,6 +12,7 @@ from linear_algebra_testcase.utils import normalize_vec
 DRAG_SNAP_DISTANCE = 0.07
 RED = pg.Color(255, 80, 80)
 GREEN = pg.Color(100, 220, 100)
+BLUE = pg.Color(80, 80, 240)
 CYAN = pg.Color(0, 220, 220)
 YELLOW = pg.Color(220, 220, 0)
 MAGENTA = pg.Color(220, 0, 220)
