@@ -10,7 +10,7 @@ from ..user_interface.items import (Container, Label, Button, Image, RootContain
                                     ElementLabel)
 from ..user_interface.window import Window
 from linear_algebra_testcase.utils import Colors, Dimension
-from ...dim3.elements import Cube, Vector3D
+from ...dim3.elements import MultiVectorObject3D, Vector3D
 
 
 class UserInterface:
@@ -147,7 +147,7 @@ class UserInterface:
             def add_cube():
                 num_elements = len(element_buffer.elements) + 1
 
-                obj = Cube.create_cube(
+                obj = MultiVectorObject3D.create_cube(
                     f'c{num_elements}', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5,
                     render_kind=RenderKind.POINT
                 )
@@ -160,7 +160,7 @@ class UserInterface:
         for element in element_buffer.elements:
             if isinstance(element, Vector) or isinstance(element, Vector3D):
                 self._create_vector(element, item_container)
-            elif isinstance(element, MultiVectorObject):
+            elif isinstance(element, MultiVectorObject) or isinstance(element, MultiVectorObject3D):
                 self._create_multiobject(element, item_container)
 
     def _create_multiobject(self, element, item_container):

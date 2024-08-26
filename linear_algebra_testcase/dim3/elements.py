@@ -9,68 +9,6 @@ from linear_algebra_testcase.utils import normalize_vec
 from linear_algebra_testcase.dim2.elements import (Element, RenderKind, RED, GREEN, CYAN, YELLOW, MAGENTA, snap)
 
 
-class Cube(Element):
-    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
-        super().__init__(name, render_kind)
-        self.coordinates = coordinates
-        self.dragged = False
-
-    @classmethod
-    def create_cube(
-            cls, name: str, bot_left_back: np.ndarray, top_right_front: np.ndarray,
-            render_kind: RenderKind = RenderKind.POINT
-    ) -> Self:
-        x1, y1, z1 = bot_left_back
-        x2, y2, z2 = top_right_front
-        coordinates = np.array([
-            [x1, y1, z1],
-            [x2, y1, z1],
-            [x2, y2, z1],
-            [x1, y2, z1],
-            [x1, y1, z2],
-            [x2, y1, z2],
-            [x2, y2, z2],
-            [x1, y2, z2]
-        ])
-        return Cube(name, coordinates, render_kind)
-
-    def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
-        if not self.visible:
-            return False
-        pos = coordinate_system.transform(self.coordinates)[:, :2]
-        diffs = np.sum((mouse_position.reshape(1, 2) - pos)**2, axis=1)
-        return np.any(diffs < 100)
-
-    def __repr__(self):
-        return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
-
-    def get_array(self):
-        return self.coordinates
-
-    def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_points = coordinate_system.transform(self.coordinates)[:, :2]
-        # width = 3 if self.hovered else 1
-        width = 3
-        if self.render_kind == RenderKind.POINT:
-            for index, point in enumerate(transformed_points):
-                pg.draw.circle(screen, GREEN, point, width)
-        elif self.render_kind == RenderKind.LINE:
-            for point in transformed_points:
-                pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=width)
-
-    def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
-        super().handle_event(event, coordinate_system, mouse_position)
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if self.is_hovered(mouse_position, coordinate_system):
-                self.dragged = True
-        elif event.type == pg.MOUSEBUTTONUP:
-            self.dragged = False
-        # elif event.type == pg.MOUSEMOTION:
-            # if self.dragged:
-            #     pos = coordinate_system.transform_inverse(np.array(event.pos))
-            #     self.coordinates = snap(pos)
-
-
 class Vector3D(Element):
     def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
@@ -117,81 +55,67 @@ class Vector3D(Element):
         #         self.coordinates = snap(pos)
 
 
-class MultiVectorObject(Element):
-    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.POINT):
+class MultiVectorObject3D(Element):
+    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
         super().__init__(name, render_kind)
         self.coordinates = coordinates
-        self.original_coordinates = coordinates
+        self.dragged = False
 
-    @staticmethod
-    def generate_unit_circle(num_points, include_center=True):
-        space = np.linspace(0, np.pi * 2, num=num_points, endpoint=False)
-        coordinates = np.vstack([np.cos(space), np.sin(space)])
-        if include_center:
-            coordinates = np.hstack([coordinates, [[0], [0]]])  # add center
-        return coordinates
-
-    @staticmethod
-    def generate_house():
-        lines = [
-            # sides
-            MultiVectorObject.generate_line([-1, -1], [-1, 1]),
-            MultiVectorObject.generate_line([-1, 1], [1, 1]),
-            MultiVectorObject.generate_line([1, 1], [1, -1]),
-            MultiVectorObject.generate_line([1, -1], [-1, -1]),
-
-            # roof
-            MultiVectorObject.generate_line([-1, 1], [0, 2], num_points=8),
-            MultiVectorObject.generate_line([0, 2], [1, 1], num_points=8),
-
-            # door
-            MultiVectorObject.generate_line([0, -1], [0, 0], num_points=5),
-            MultiVectorObject.generate_line([0, 0], [0.5, 0], num_points=2),
-            MultiVectorObject.generate_line([0.5, 0], [0.5, -1], num_points=5),
-
-            # windows
-            MultiVectorObject.generate_line([-0.8, 0.2], [-0.8, 0.8], num_points=4),
-            MultiVectorObject.generate_line([-0.8, 0.8], [-0.2, 0.8], num_points=4),
-            MultiVectorObject.generate_line([-0.2, 0.8], [-0.2, 0.2], num_points=4),
-            MultiVectorObject.generate_line([-0.2, 0.2], [-0.8, 0.2], num_points=4),
-
-            # chimney
-            MultiVectorObject.generate_line([-0.75, 1.25], [-0.75, 2], num_points=4),
-            MultiVectorObject.generate_line([-0.75, 2], [-0.37, 2], num_points=3),
-            MultiVectorObject.generate_line([-0.37, 2], [-0.37, 1.62], num_points=2),
-        ]
-        return np.concatenate(lines, axis=1)
-
-    @staticmethod
-    def generate_line(a, b, num_points=10, endpoint=False):
-        space = np.linspace(0, 1, num_points, endpoint=endpoint)
-        return np.reshape(a, (2, 1)) * (1 - space) + np.reshape(b, (2, 1)) * space
+    @classmethod
+    def create_cube(
+            cls, name: str, bot_left_back: np.ndarray, top_right_front: np.ndarray,
+            render_kind: RenderKind = RenderKind.POINT
+    ) -> Self:
+        x1, y1, z1 = bot_left_back
+        x2, y2, z2 = top_right_front
+        coordinates = np.array([
+            [x1, y1, z1],
+            [x2, y1, z1],
+            [x2, y2, z1],
+            [x1, y2, z1],
+            [x1, y1, z2],
+            [x2, y1, z2],
+            [x2, y2, z2],
+            [x1, y2, z2]
+        ])
+        return MultiVectorObject3D(name, coordinates, render_kind)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         if not self.visible:
             return False
-        pos = coordinate_system.transform(self.get_array()).T
-        diff = np.sum((mouse_position - pos)**2, axis=1)
-        return np.any(diff < 100)
+        pos = coordinate_system.transform(self.coordinates)[:, :2]
+        diffs = np.sum((mouse_position.reshape(1, 2) - pos)**2, axis=1)
+        return np.any(diffs < 100)
 
-    def move_to(self, mouse_position: np.ndarray):
-        mouse_position = snap(mouse_position)
-        self.coordinates = self.original_coordinates * mouse_position
+    def __repr__(self):
+        return '[{:.2f} {:.2f}]'.format(self.coordinates[0], self.coordinates[1])
 
     def get_array(self):
         return self.coordinates
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_vec = coordinate_system.transform(self.get_array()).T
-        width = 4 if self.hovered else 3
-        for point in transformed_vec:
-            if self.render_kind == RenderKind.POINT:
+        transformed_points = coordinate_system.transform(self.coordinates)[:, :2]
+        # width = 3 if self.hovered else 1
+        width = 3
+        if self.render_kind == RenderKind.POINT:
+            for index, point in enumerate(transformed_points):
                 pg.draw.circle(screen, GREEN, point, width)
-            elif self.render_kind == RenderKind.LINE:
-                pg.draw.line(screen, GREEN, coordinate_system.get_zero_point(), point, width=1)
+        elif self.render_kind == RenderKind.LINE:
+            zero_point = coordinate_system.get_zero_point().flatten()[:2]
+            for point in transformed_points:
+                pg.draw.line(screen, GREEN, zero_point, point, width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.is_hovered(mouse_position, coordinate_system):
+                self.dragged = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.dragged = False
+        # elif event.type == pg.MOUSEMOTION:
+            # if self.dragged:
+            #     pos = coordinate_system.transform_inverse(np.array(event.pos))
+            #     self.coordinates = snap(pos)
 
 
 class Transform2D(Element):
@@ -300,7 +224,7 @@ class Transform3D(Element):
 
 
 class Transformed(Element):
-    def __init__(self, name: str, element: Union[None, Cube], transform: Optional[Transform2D],
+    def __init__(self, name: str, element: Union[None, MultiVectorObject3D], transform: Optional[Transform2D],
                  render_kind: RenderKind):
         super().__init__(name, render_kind)
         self.element = element
@@ -428,7 +352,7 @@ class ElementBuffer:
 
     def create_example_elements(self):
         self.elements.append(
-            Cube.create_cube(
+            MultiVectorObject3D.create_cube(
                 'c1', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5, render_kind=RenderKind.POINT
             )
         )
