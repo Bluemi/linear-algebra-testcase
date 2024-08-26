@@ -56,9 +56,13 @@ class Vector3D(Element):
 
 
 class MultiVectorObject3D(Element):
-    def __init__(self, name: str, coordinates: np.ndarray, render_kind: RenderKind = RenderKind.LINE):
+    def __init__(
+            self, name: str, coordinates: np.ndarray, line_indices: np.ndarray,
+            render_kind: RenderKind = RenderKind.LINE
+    ):
         super().__init__(name, render_kind)
         self.coordinates = coordinates
+        self.line_indices = line_indices
         self.dragged = False
 
     @classmethod
@@ -69,16 +73,33 @@ class MultiVectorObject3D(Element):
         x1, y1, z1 = bot_left_back
         x2, y2, z2 = top_right_front
         coordinates = np.array([
-            [x1, y1, z1],
-            [x2, y1, z1],
-            [x2, y2, z1],
-            [x1, y2, z1],
-            [x1, y1, z2],
-            [x2, y1, z2],
-            [x2, y2, z2],
-            [x1, y2, z2]
+            [x1, y1, z1],  # 0
+            [x2, y1, z1],  # 1
+            [x2, y2, z1],  # 2
+            [x1, y2, z1],  # 3
+            [x1, y1, z2],  # 4
+            [x2, y1, z2],  # 5
+            [x2, y2, z2],  # 6
+            [x1, y2, z2]   # 7
         ])
-        return MultiVectorObject3D(name, coordinates, render_kind)
+        line_indices = np.array([
+            # x changes
+            [0, 1],
+            [2, 3],
+            [4, 5],
+            [6, 7],
+            # y changes
+            [0, 3],
+            [1, 2],
+            [4, 7],
+            [5, 6],
+            # z changes
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+        ])
+        return MultiVectorObject3D(name, coordinates, line_indices, render_kind)
 
     def is_hovered(self, mouse_position: np.ndarray, coordinate_system: CoordinateSystem):
         if not self.visible:
@@ -94,16 +115,15 @@ class MultiVectorObject3D(Element):
         return self.coordinates
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_points = coordinate_system.transform(self.coordinates)[:, :2]
-        # width = 3 if self.hovered else 1
-        width = 3
+        transformed_points = coordinate_system.transform(self.coordinates, clip=False)[:, :2]
+        width = 3 if self.hovered else 1
         if self.render_kind == RenderKind.POINT:
             for index, point in enumerate(transformed_points):
                 pg.draw.circle(screen, GREEN, point, width)
         elif self.render_kind == RenderKind.LINE:
-            zero_point = coordinate_system.get_zero_point().flatten()[:2]
-            for point in transformed_points:
-                pg.draw.line(screen, GREEN, zero_point, point, width=width)
+            for indices in self.line_indices:
+                points = transformed_points[indices]
+                pg.draw.line(screen, GREEN, points[0], points[1], width=width)
 
     def handle_event(self, event: pg.event.Event, coordinate_system: CoordinateSystem, mouse_position: np.ndarray):
         super().handle_event(event, coordinate_system, mouse_position)
