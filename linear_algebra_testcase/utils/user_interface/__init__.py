@@ -149,7 +149,7 @@ class UserInterface:
 
                 obj = MultiVectorObject3D.create_cube(
                     f'c{num_elements}', np.zeros(3, dtype=float) - 0.5, np.zeros(3, dtype=float) + 0.5,
-                    render_kind=RenderKind.POINT
+                    render_kind=RenderKind.LINE
                 )
                 element_buffer.elements.append(obj)
             add_cube_button.on_click = add_cube
