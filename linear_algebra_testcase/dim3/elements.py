@@ -148,7 +148,7 @@ class Transform3D(Element):
         return snap(self.matrix)
 
     def render(self, screen: pg.Surface, coordinate_system: CoordinateSystem):
-        transformed_vecs = coordinate_system.transform(self.get_array(), clip=False)[:, :2]
+        transformed_vecs = coordinate_system.transform(self.get_array().T, clip=False)[:, :2]
         zero_point = coordinate_system.get_zero_point().flatten()[:2]
         for i, transformed_vec in enumerate(transformed_vecs):
             width = 3 if self.hovered_index == i else 1
@@ -195,7 +195,7 @@ class Translate3D(Element):
         return snap(self.matrix)
 
     def get_render_locations(self, coordinate_system: CoordinateSystem):
-        vecs = self.get_array()[:3]
+        vecs = self.get_array().T[:3]
         offset = vecs[:, 3].reshape(1, 3)
         first_vecs = vecs[:, :3] + offset
         first_vecs_transformed = coordinate_system.transform(first_vecs, clip=False)[:, :2]
